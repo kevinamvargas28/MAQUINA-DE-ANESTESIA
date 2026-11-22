@@ -306,45 +306,59 @@ SIM.ui = (function () {
   /* ================================================================ */
   /* PANTALLA DE INICIO                                                */
   /* ================================================================ */
+  /* ------------------------------------------------------------------
+     Portada: la maquina primero. Antes se entraba a una lista de tres
+     botones, que no dice nada de lo que hay dentro. Ahora lo primero
+     que se ve es el equipo completo, se pulsa sobre el y de ahi se
+     elige el modo.
+     ------------------------------------------------------------------ */
+  /* ------------------------------------------------------------------
+     Inicio: una sola pantalla. A la izquierda lo que se puede hacer, a
+     la derecha la maquina. Antes eran dos pasos (portada y luego los
+     modos) y el segundo no aportaba nada.
+     ------------------------------------------------------------------ */
   function renderInicio(raiz, acciones) {
+    var MODOS = [
+      { id: 'mEntreno',  tit: 'Entrenamiento guiado',
+        txt: 'Una guia paso a paso te ensena a diagnosticar cada falla, diciendote que mirar y por que.',
+        pie: 'Empieza aqui' },
+      { id: 'mPractica', tit: 'Practica libre',
+        txt: 'El mismo escenario sin ayudas. Tu decides que mirar y en que orden; al final ves que acertaste.',
+        pie: 'Cuando ya sepas moverte' },
+      { id: 'mMaquina',  tit: 'Conocer la maquina',
+        txt: 'Recorre el equipo completo y entra a cada uno de sus ocho modulos, sin ninguna falla activa.',
+        pie: 'Consulta libre' }
+    ];
+
     raiz.innerHTML =
-      '<div class="inicio">' +
-        '<div class="inicio-cab">' +
-          '<h1>Simulador de maquina de anestesia</h1>' +
-          '<p class="sub">Diagnostico de fallas desde la ingenieria clinica. ' +
-            'Maquina generica de arquitectura estandar, sin marca.</p>' +
+      '<div class="inicio2">' +
+        '<div class="inicio2-izq">' +
+          '<p class="inicio2-sobre">Simulador de maquina de anestesia</p>' +
+          '<h1 class="inicio2-tit">Que te gustaria hacer</h1>' +
+
+          '<div class="modos-lista">' +
+            MODOS.map(function (m) {
+              return '<button class="modo-fila" id="' + m.id + '">' +
+                       '<span class="modo-fila-cab">' +
+                         '<span class="modo-fila-tit">' + m.tit + '</span>' +
+                         '<span class="modo-fila-pie">' + m.pie + '</span>' +
+                       '</span>' +
+                       '<span class="modo-fila-txt">' + m.txt + '</span>' +
+                       '<svg class="modo-fila-flecha" viewBox="0 0 16 16" aria-hidden="true">' +
+                         '<path d="M3 8 h9 M8.5 4 l4 4 l-4 4"/></svg>' +
+                     '</button>';
+            }).join('') +
+          '</div>' +
+
           '<p class="aviso">Herramienta educativa. No representa un equipo certificado, no sustituye los ' +
             'manuales del fabricante ni al personal tecnico autorizado, y no es guia clinica.</p>' +
+          '<div class="inicio2-pie">' +
+            '<button class="btn-sec peq" id="btnPerfil">Perfil de la maquina</button>' +
+            '<button class="btn-sec peq" id="btnSupuestos">Supuestos sin validar</button>' +
+          '</div>' +
         '</div>' +
 
-        '<div class="modos">' +
-          '<button class="modo-tarj destacada" id="mEntreno">' +
-            '<span class="modo-num">1</span>' +
-            '<span class="modo-tit">Entrenamiento guiado</span>' +
-            '<span class="modo-txt">Empieza aqui. Una guia paso a paso te ensena a usar el simulador y a ' +
-              'diagnosticar cada falla, diciendote que hacer y por que.</span>' +
-            '<span class="modo-pie">Recomendado la primera vez</span>' +
-          '</button>' +
-          '<button class="modo-tarj" id="mPractica">' +
-            '<span class="modo-num">2</span>' +
-            '<span class="modo-tit">Practica libre</span>' +
-            '<span class="modo-txt">El mismo escenario, sin ayudas. Tu decides que mirar y en que orden. ' +
-              'Al final ves que acertaste y que no.</span>' +
-            '<span class="modo-pie">Cuando ya sepas moverte</span>' +
-          '</button>' +
-          '<button class="modo-tarj" id="mMaquina">' +
-            '<span class="modo-num">3</span>' +
-            '<span class="modo-tit">Conocer la maquina</span>' +
-            '<span class="modo-txt">Recorre la maquina completa y entra a cada uno de sus ocho modulos: ' +
-              'que es, que hace y en que se nota cuando falla.</span>' +
-            '<span class="modo-pie">Consulta libre</span>' +
-          '</button>' +
-        '</div>' +
-
-        '<div class="inicio-pie">' +
-          '<button class="btn-sec" id="btnPerfil">Ver el perfil de la maquina</button>' +
-          '<button class="btn-sec" id="btnSupuestos">Supuestos de diseno sin validar</button>' +
-        '</div>' +
+        '<div class="inicio2-der">' + SIM.maquinaVista.markup('svgPortada') + '</div>' +
       '</div>';
 
     $('#mEntreno', raiz).addEventListener('click', function () { acciones.listaEscenarios('entrenamiento'); });
@@ -354,9 +368,6 @@ SIM.ui = (function () {
     $('#btnSupuestos', raiz).addEventListener('click', mostrarSupuestos);
   }
 
-  /* ================================================================ */
-  /* LISTA DE ESCENARIOS                                               */
-  /* ================================================================ */
   function renderListaEscenarios(raiz, modo, acciones) {
     var entrenando = modo === 'entrenamiento';
     var tarjetas = SIM.escenarios.lista.map(function (e) {
@@ -366,8 +377,9 @@ SIM.ui = (function () {
       if (!e.disponible) chip = 'Previsto para el ' + e.previsto;
       else if (entrenando && !guia) chip = 'Guia en preparacion';
       else chip = entrenando ? 'Con guia paso a paso' : 'Disponible';
-      return '<button class="tarjeta' + (dis ? '' : ' no-disp') + '" ' +
+      return '<button class="tarjeta con-vineta' + (dis ? '' : ' no-disp') + '" ' +
              (dis ? 'data-esc="' + e.id + '"' : 'disabled') + '>' +
+               '<span class="tarj-vineta">' + SIM.maquinaVista.vineta(e.id) + '</span>' +
                '<span class="num">Escenario ' + e.numero + '</span>' +
                '<span class="tit">' + e.titulo + '</span>' +
                '<span class="idea">' + (e.ideaPrincipal || '') + '</span>' +
@@ -1851,9 +1863,14 @@ SIM.ui = (function () {
       var v = VARIABLES[id];
       if (!v) return '';
       var estado = v.estado ? v.estado(calc, S.estado) : 'neutro';
+      /* Las cifras van grandes, como en un monitor; los estados escritos
+         con palabras ("llega al tope") no, porque a ese tamano no caben
+         y ademas no se leen de un vistazo como se lee un numero. */
+      var val = String(v.val(calc, S.estado));
+      var clase = /^[-+]?[0-9]/.test(val.trim()) ? 'v-val' : 'v-val texto';
       return '<div class="variable est-' + estado + '">' +
                '<span class="v-et">' + v.et + '</span>' +
-               '<span class="v-val">' + v.val(calc, S.estado) + '<small>' + (v.uni || '') + '</small></span>' +
+               '<span class="' + clase + '">' + val + '<small>' + (v.uni || '') + '</small></span>' +
                '<button class="v-por-que" data-por-que="var:' + id + '" title="Por que">?</button>' +
              '</div>';
     }).join('');

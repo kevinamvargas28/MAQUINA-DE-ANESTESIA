@@ -48,9 +48,9 @@ SIM.monitor = (function () {
     /* --- banda de rango normal --- */
     if (opc.banda) {
       var ya = yDe(opc.banda[1]), yb = yDe(opc.banda[0]);
-      ctx.fillStyle = opc.colorBanda || 'rgba(61,220,132,.09)';
+      ctx.fillStyle = opc.colorBanda || 'rgba(53,168,100,.10)';
       ctx.fillRect(x0, ya, ancho, yb - ya);
-      ctx.strokeStyle = opc.colorBandaLinea || 'rgba(61,220,132,.22)';
+      ctx.strokeStyle = opc.colorBandaLinea || 'rgba(53,168,100,.26)';
       ctx.lineWidth = 1;
       ctx.setLineDash([3, 3]);
       ctx.beginPath(); ctx.moveTo(x0, ya); ctx.lineTo(x1, ya);
@@ -59,19 +59,19 @@ SIM.monitor = (function () {
     }
 
     /* --- marco y escala --- */
-    ctx.strokeStyle = 'rgba(125,180,195,.16)';
+    ctx.strokeStyle = 'rgba(143,148,153,.13)';
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(x0, y0); ctx.lineTo(x0, y1); ctx.lineTo(x1, y1);
     ctx.stroke();
 
-    ctx.fillStyle = 'rgba(142,168,181,.85)';
+    ctx.fillStyle = 'rgba(166,171,175,.85)';
     ctx.font = '9px system-ui, sans-serif';
     ctx.textAlign = 'right';
     ctx.fillText(String(opc.max), x0 - 4, y0 + 7);
     ctx.fillText(String(opc.min), x0 - 4, y1);
     if (opc.banda) {
-      ctx.fillStyle = 'rgba(61,220,132,.75)';
+      ctx.fillStyle = 'rgba(53,168,100,.80)';
       ctx.fillText(String(opc.banda[0]), x0 - 4, yDe(opc.banda[0]) + 3);
     }
 
@@ -91,26 +91,26 @@ SIM.monitor = (function () {
 
       /* relleno tenue bajo el trazo */
       ctx.lineTo(x1, y1); ctx.lineTo(x0, y1); ctx.closePath();
-      ctx.fillStyle = opc.relleno || 'rgba(125,211,252,.08)';
+      ctx.fillStyle = opc.relleno || 'rgba(159,176,189,.08)';
       ctx.fill();
     }
 
     /* --- linea de FiCO2 cuando hay reinhalacion --- */
     if (opc.lineaExtra !== undefined && opc.lineaExtra !== null && opc.lineaExtra > 0.5) {
       var ye = yDe(opc.lineaExtra);
-      ctx.strokeStyle = 'rgba(255,197,61,.8)';
+      ctx.strokeStyle = 'rgba(240,196,25,.8)';
       ctx.setLineDash([4, 3]);
       ctx.lineWidth = 1;
       ctx.beginPath(); ctx.moveTo(x0, ye); ctx.lineTo(x1, ye); ctx.stroke();
       ctx.setLineDash([]);
-      ctx.fillStyle = 'rgba(255,197,61,.95)';
+      ctx.fillStyle = 'rgba(240,196,25,.95)';
       ctx.font = '9px system-ui, sans-serif';
       ctx.textAlign = 'left';
       ctx.fillText('FiCO2 ' + opc.lineaExtra.toFixed(1), x0 + 4, ye - 3);
     }
 
     /* --- eje de tiempo --- */
-    ctx.fillStyle = 'rgba(95,122,136,.9)';
+    ctx.fillStyle = 'rgba(143,148,153,.9)';
     ctx.font = '9px system-ui, sans-serif';
     ctx.textAlign = 'left';
     ctx.fillText(opc.ventana || '10 s', x0 + 1, h - 3);
@@ -130,8 +130,12 @@ SIM.monitor = (function () {
         datos: historia.presion,
         min: 0, max: 45,
         banda: [pMin, pMax],
-        color: '#7dd3fc',
-        relleno: 'rgba(125,211,252,.09)',
+        /* Presion de via aerea en gris azulado palido y CO2 en blanco:
+           es la convencion de quirofano que describe la APSF, donde el
+           dioxido de carbono es siempre blanco. Ademas deja el verde
+           libre para que signifique oxigeno en todo el simulador. */
+        color: '#9fb0bd',
+        relleno: 'rgba(159,176,189,.08)',
         unidad: 'cmH2O'
       });
     }
@@ -142,15 +146,15 @@ SIM.monitor = (function () {
         datos: ok ? historia.capno : [],
         min: 0, max: 60,
         banda: [SIM.pv('absorbedor.alarmaEtCO2Baja', perfil), SIM.pv('absorbedor.alarmaEtCO2Alta', perfil)],
-        color: '#66e398',
-        relleno: 'rgba(102,227,152,.08)',
+        color: '#e8e6e3',
+        relleno: 'rgba(232,230,227,.07)',
         lineaExtra: ok ? calc.monitor.fico2 : null,
         unidad: 'mmHg'
       });
       if (!ok) {
         var m = cvCapno.getContext('2d');
         if (m) {
-          m.fillStyle = 'rgba(138,160,168,.9)';
+          m.fillStyle = 'rgba(166,171,175,.9)';
           m.font = '11px system-ui, sans-serif';
           m.textAlign = 'center';
           m.fillText('sin dato del monitor', cvCapno.clientWidth / 2, cvCapno.clientHeight / 2);

@@ -28,8 +28,11 @@ SIM.esquema = (function () {
   'use strict';
 
   var COLORES = {
-    o2: '#3ddc84', aire: '#ffd166', n2o: '#6cb6ff',
-    mezcla: '#9fe8c4', agente: '#ff9f45', espirado: '#b39ddb', residual: '#7c8f9b'
+    /* Los mismos valores que las variables --o2, --aire, --n2o... del
+       CSS: la particula del circuito y la etiqueta del gas tienen que
+       ser el mismo color, o el codigo de identificacion no ensena nada. */
+    o2: '#35a864', aire: '#d4a03a', n2o: '#4a86c8',
+    mezcla: '#8fa8b5', agente: '#d9823c', espirado: '#9281bd', residual: '#86827b'
   };
 
   /* ---------------------------------------------------------------- */

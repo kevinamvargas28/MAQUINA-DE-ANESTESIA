@@ -147,6 +147,71 @@ SIM.maquinaVista = (function () {
   /* ---------------------------------------------------------------- */
   /* Trazado                                                           */
   /* ---------------------------------------------------------------- */
+
+  /* ------------------------------------------------------------------
+     Vinetas de los escenarios. Una miniatura por falla, con el mismo
+     lenguaje grafico que la maquina: lo que esta mal se ve, y lo que
+     esta mal esta marcado en rojo. No sustituyen a la explicacion;
+     sirven para reconocer el escenario de un vistazo.
+     ------------------------------------------------------------------ */
+  var VINETAS = {
+    /* Manguera suelta con gas escapando */
+    fuga: '<path class="vn-pieza" d="M14 30 h22" /><rect class="vn-cuerpo" x="6" y="22" width="12" height="16" rx="3"/>' +
+      '<g class="vn-corru"><rect x="20" y="24" width="4" height="12" rx="1.5"/><rect x="26" y="24" width="4" height="12" rx="1.5"/>' +
+      '<rect x="32" y="24" width="4" height="12" rx="1.5"/></g>' +
+      '<g class="vn-corru suelta"><rect x="52" y="34" width="4" height="12" rx="1.5"/><rect x="58" y="37" width="4" height="12" rx="1.5"/>' +
+      '<rect x="64" y="41" width="4" height="12" rx="1.5"/></g>' +
+      '<circle class="vn-escape" cx="44" cy="22" r="2.6"/><circle class="vn-escape" cx="48" cy="14" r="2"/>' +
+      '<circle class="vn-escape" cx="40" cy="12" r="1.5"/>' +
+      '<path class="vn-alerta" d="M38 26 l10 10 M48 26 l-10 10"/>' +
+      '<rect class="vn-cuerpo" x="72" y="20" width="14" height="20" rx="3"/>',
+
+    /* Fuelle que no sube */
+    ventilador: '<rect class="vn-vidrio" x="26" y="6" width="40" height="48" rx="6"/>' +
+      '<g class="vn-pliegue"><rect x="30" y="38" width="32" height="3" rx="1.5"/><rect x="30" y="43" width="32" height="3" rx="1.5"/>' +
+      '<rect x="30" y="48" width="32" height="3" rx="1.5"/></g>' +
+      '<line class="vn-tope" x1="28" y1="14" x2="64" y2="14"/>' +
+      '<path class="vn-alerta flecha" d="M46 18 v14 M41 27 l5 6 l5 -6"/>' +
+      '<rect class="vn-cuerpo" x="22" y="54" width="48" height="6" rx="2"/>',
+
+    /* Capnograma plano y trampa con agua */
+    monitoreo: '<rect class="vn-pant" x="4" y="8" width="56" height="34" rx="3"/>' +
+      '<path class="vn-traza" d="M8 34 h48"/>' +
+      '<text class="vn-txt" x="8" y="18">CO2</text>' +
+      '<rect class="vn-vidrio" x="70" y="14" width="18" height="28" rx="3"/>' +
+      '<rect class="vn-agua" x="72" y="28" width="14" height="12" rx="2"/>' +
+      '<path class="vn-alerta" d="M74 46 l10 10 M84 46 l-10 10" transform="translate(0,-4) scale(.8) translate(18,8)"/>',
+
+    /* Vaporizador con la ventana vacia */
+    vaporizador: '<rect class="vn-cuerpo" x="18" y="8" width="44" height="46" rx="5"/>' +
+      '<circle class="vn-dial" cx="40" cy="22" r="11"/><line class="vn-aguja" x1="40" y1="22" x2="47" y2="16"/>' +
+      '<rect class="vn-vidrio" x="26" y="38" width="28" height="10" rx="2"/>' +
+      '<path class="vn-alerta" d="M66 24 l10 10 M76 24 l-10 10"/>' +
+      '<text class="vn-txt" x="26" y="60">vacio</text>',
+
+    /* Manometro en cero */
+    perdida_o2: '<circle class="vn-man" cx="34" cy="30" r="22"/><circle class="vn-man-int" cx="34" cy="30" r="18"/>' +
+      '<line class="vn-aguja larga" x1="34" y1="30" x2="18" y2="40"/>' +
+      '<circle class="vn-eje" cx="34" cy="30" r="2.5"/>' +
+      '<text class="vn-txt c" x="34" y="52">0 kPa</text>' +
+      '<rect class="vn-cuerpo" x="62" y="12" width="20" height="36" rx="9"/>' +
+      '<path class="vn-alerta" d="M64 6 l16 0" />',
+
+    /* Cal virada y CO2 que vuelve */
+    absorbedor: '<rect class="vn-vidrio" x="20" y="8" width="40" height="46" rx="5"/>' +
+      '<rect class="vn-cal" x="24" y="20" width="32" height="30" rx="3"/>' +
+      '<circle class="vn-grano" cx="30" cy="28" r="2"/><circle class="vn-grano" cx="40" cy="34" r="2"/>' +
+      '<circle class="vn-grano" cx="50" cy="26" r="2"/><circle class="vn-grano" cx="36" cy="44" r="2"/>' +
+      '<path class="vn-alerta flecha" d="M68 44 v-18 M63 31 l5 -6 l5 6"/>' +
+      '<text class="vn-txt" x="62" y="56">CO2</text>'
+  };
+
+  function vineta(id) {
+    var d = VINETAS[id];
+    if (!d) return '';
+    return '<svg class="vineta" viewBox="0 0 92 64" aria-hidden="true">' + d + '</svg>';
+  }
+
   function markup(idSvg) {
     return '' +
 '<svg id="' + (idSvg || 'svgVista') + '" class="vista-maquina" viewBox="0 0 580 700" ' +
@@ -189,6 +254,16 @@ SIM.maquinaVista = (function () {
       '<stop offset="0%" stop-color="#071017"/><stop offset="100%" stop-color="#030709"/></linearGradient>' +
     '<linearGradient id="gSuperficie" x1="0" y1="0" x2="0" y2="1">' +
       '<stop offset="0%" stop-color="#3b5467"/><stop offset="100%" stop-color="#273948"/></linearGradient>' +
+    /* Cuerpo de la maquina: gris claro, como el de un equipo real. */
+    '<linearGradient id="gCuerpo" x1="0" y1="0" x2="1" y2="0">' +
+      '<stop offset="0%" stop-color="#c4ced6"/><stop offset="18%" stop-color="#eef2f5"/>' +
+      '<stop offset="62%" stop-color="#dde3e8"/><stop offset="100%" stop-color="#bcc6ce"/></linearGradient>' +
+    '<linearGradient id="gCajon" x1="0" y1="0" x2="0" y2="1">' +
+      '<stop offset="0%" stop-color="#eaeff3"/><stop offset="55%" stop-color="#dae1e7"/>' +
+      '<stop offset="100%" stop-color="#c3ccd4"/></linearGradient>' +
+    '<linearGradient id="gEncimera" x1="0" y1="0" x2="0" y2="1">' +
+      '<stop offset="0%" stop-color="#f1f4f7"/><stop offset="60%" stop-color="#d4dbe1"/>' +
+      '<stop offset="100%" stop-color="#aeb9c2"/></linearGradient>' +
     '<pattern id="pGranulo" width="8" height="8" patternUnits="userSpaceOnUse">' +
       '<circle cx="2.2" cy="2.2" r="1.6" fill="rgba(92,80,142,.32)"/>' +
       '<circle cx="6" cy="5.8" r="1.3" fill="rgba(92,80,142,.24)"/>' +
@@ -252,9 +327,15 @@ SIM.maquinaVista = (function () {
 
   /* ================= MONITOR ================= */
   '<g class="pieza">' +
-    '<rect class="brazo" x="250" y="112" width="20" height="42" rx="3"/>' +
-    '<rect class="brazo-luz" x="252" y="112" width="3" height="42" rx="1.5"/>' +
-    '<path class="cable" d="M 262 150 C 262 170 240 176 226 180"/>' +
+    /* Brazo articulado: sube desde el lateral del cabezal, dobla en el
+       codo y sostiene el monitor por detras, como en los equipos de
+       montaje en pedestal. */
+    '<path class="brazo-art" fill="none" d="M 404 150 L 404 96 L 330 72 L 290 72"/>' +
+    '<path class="brazo-art-luz" fill="none" d="M 404 148 L 404 98 L 332 75"/>' +
+    '<circle class="brazo-pivote" cx="404" cy="96" r="7"/>' +
+    '<circle class="brazo-pivote" cx="330" cy="72" r="6"/>' +
+    '<circle class="brazo-pivote" cx="404" cy="150" r="7"/>' +
+    '<path class="cable" d="M 400 150 C 392 170 370 178 352 182"/>' +
     '<rect class="bisel" x="128" y="10" width="276" height="106" rx="9" filter="url(#fSombra)"/>' +
     '<rect class="pantalla" id="vmPantalla" x="136" y="18" width="260" height="74" rx="4"/>' +
     '<rect class="pantalla-brillo" x="140" y="21" width="252" height="12" rx="4"/>' +
@@ -278,6 +359,20 @@ SIM.maquinaVista = (function () {
     '<rect class="cabezal" x="76" y="150" width="372" height="154" rx="9" filter="url(#fSombra)"/>' +
     '<rect class="cabezal-luz" x="84" y="156" width="356" height="2.5" rx="1.25"/>' +
     tornillo(84, 296) + tornillo(440, 296) + tornillo(84, 160) + tornillo(440, 160) +
+    /* Pantalla de la propia maquina: la de ventilacion y gas fresco, que
+       en los equipos actuales convive con el monitor del paciente. */
+    '<rect class="pant-cab" x="342" y="162" width="98" height="92" rx="5"/>' +
+    '<rect class="pant-cab-brillo" x="345" y="165" width="92" height="10" rx="3"/>' +
+    '<text class="rot nano" x="351" y="192">VT</text>' +
+    '<text class="rot nano" x="351" y="212">FR</text>' +
+    '<text class="rot nano" x="351" y="232">PEEP</text>' +
+    '<text class="rot nano der" id="vmCabVt"   x="432" y="192">500</text>' +
+    '<text class="rot nano der" id="vmCabFr"   x="432" y="212">12</text>' +
+    '<text class="rot nano der" id="vmCabPeep" x="432" y="232">5</text>' +
+    '<rect class="btn-mon" x="348" y="262" width="20" height="9" rx="3"/>' +
+    '<rect class="btn-mon" x="374" y="262" width="20" height="9" rx="3"/>' +
+    '<rect class="btn-mon" x="400" y="262" width="20" height="9" rx="3"/>' +
+    '<text class="rot-cuerpo c" x="391" y="278">Ventilacion</text>' +
   '</g>' +
 
   /* --- Flujometros --- */
@@ -326,11 +421,6 @@ SIM.maquinaVista = (function () {
     '<line class="vapor-min" x1="246" y1="252" x2="246" y2="270"/>' +
     '<line class="vapor-max" x1="306" y1="252" x2="306" y2="270"/>' +
     '<text class="rot nano c" x="276" y="284">vol. %</text>' +
-    /* puesto libre */
-    '<rect class="puesto-libre" x="342" y="160" width="98" height="132" rx="7"/>' +
-    '<rect class="rail" x="346" y="286" width="90" height="6" rx="3"/>' +
-    '<text class="rot nano c" x="391" y="222">puesto</text>' +
-    '<text class="rot nano c" x="391" y="236">libre</text>' +
   '</g>' +
 
   /* ================= SUPERFICIE DE TRABAJO ================= */
@@ -375,7 +465,7 @@ SIM.maquinaVista = (function () {
     '<rect class="camara-base" x="72" y="444" width="104" height="10" rx="4"/>' +
     '<path class="cristal-brillo" d="M 84 344 L 96 344 L 78 444 L 74 420 Z"/>' +
     '<path class="cristal-brillo tenue" d="M 150 344 L 158 344 L 146 444 L 140 436 Z"/>' +
-    '<text class="rot chapa c" x="124" y="338">FUELLE</text>' +
+    '<text class="rot chapa oscuro c" x="124" y="338">FUELLE</text>' +
   '</g>' +
 
   /* --- Absorbedor --- */
@@ -389,7 +479,7 @@ SIM.maquinaVista = (function () {
     '<circle class="abrazadera-tuerca" cx="176" cy="510" r="4"/>' +
     '<path class="cristal-brillo" d="M 84 468 L 94 468 L 80 554 L 76 534 Z"/>' +
     '<rect class="purga" x="114" y="558" width="16" height="9" rx="2"/>' +
-    '<text class="rot chapa c" x="120" y="513">ABSORBEDOR CO2</text>' +
+    '<text class="rot chapa oscuro c" x="120" y="513">ABSORBEDOR CO2</text>' +
   '</g>' +
 
   /* --- Bolsa reservorio --- */
@@ -416,9 +506,26 @@ SIM.maquinaVista = (function () {
     '<path class="pieza-y-cuerpo" d="M 418 480 L 436 496 L 436 506 L 418 520 Z"/>' +
     '<circle class="pieza-y" cx="432" cy="501" r="9"/>' +
     '<path class="tubo-paciente" d="M 440 501 H 468"/>' +
-    '<path class="pulmon" id="vmPulmon" d="M 468 501 c 9 -18 32 -18 36 0 c 5 21 -12 33 -18 33 c -6 0 -23 -12 -18 -33 z"/>' +
-    '<path class="pulmon-traquea" d="M 486 501 V 516"/>' +
-    '<text class="rot nano c" x="486" y="552">Paciente</text>' +
+    /* Paciente: la via aerea y los pulmones, que es como se representa
+       al paciente en los esquemas de circuito. Se probo con una figura
+       humana y quedaba inquietante; esto se entiende igual de bien, no
+       distrae y se puede ver respirar. */
+    '<g class="paciente-g">' +
+      /* conexion de la pieza en Y al tubo del paciente */
+      '<path class="via-aerea" d="M 436 498 C 452 494 462 490 472 486 C 484 482 492 488 494 498"/>' +
+      '<path class="via-aerea-luz" d="M 440 496 C 454 492 463 489 472 485"/>' +
+      /* traquea y bronquios */
+      '<path class="via-aerea" d="M 497 498 V 520"/>' +
+      '<path class="bronquio" d="M 497 518 L 487 528 M 497 518 L 507 528"/>' +
+      /* pulmones: lo que se expande al insuflar */
+      '<g id="vmPulmon">' +
+        '<path class="lobulo" d="M 491 524 C 478 526 469 538 466 552 C 463 564 466 572 474 572 ' +
+          'C 483 572 490 562 492 548 C 493 540 493 530 491 524 Z"/>' +
+        '<path class="lobulo" d="M 503 524 C 516 526 525 538 528 552 C 531 564 528 572 520 572 ' +
+          'C 511 572 504 562 502 548 C 501 540 501 530 503 524 Z"/>' +
+      '</g>' +
+    '</g>' +
+    '<text class="rot nano c" x="497" y="588">Paciente</text>' +
     '<text class="rot nano c" x="430" y="476">Y</text>' +
     /* linea de muestreo de gases: del Y al modulo del monitor */
     '<path class="linea-muestreo" id="vmLineaMuestreo" d="M 436 492 C 456 432 458 368 448 320"/>' +
@@ -430,7 +537,13 @@ SIM.maquinaVista = (function () {
     '<path class="manguera-agss" d="M 122 567 V 574"/>' +
     '<rect class="agss" x="60" y="572" width="128" height="32" rx="5"/>' +
     '<circle class="agss-indic" cx="76" cy="588" r="4"/>' +
-    '<text class="rot nano" x="88" y="592">AGSS</text>' +
+    '<text class="rot nano oscuro" x="88" y="592">AGSS</text>' +
+  '</g>' +
+
+  /* ================= ZOCALO ================= */
+  '<g class="pieza">' +
+    '<rect class="zocalo" x="186" y="604" width="274" height="26" rx="5"/>' +
+    '<rect class="zocalo-luz" x="192" y="607" width="262" height="2" rx="1"/>' +
   '</g>' +
 
   /* ================= BASE Y RUEDAS ================= */
@@ -540,6 +653,11 @@ SIM.maquinaVista = (function () {
       var yBajo = 246, yAlto = 182;
       e.setAttribute('cy', (yBajo - (yBajo - yAlto) * Math.min(1, lpm / 10)).toFixed(1));
     }
+    function cab(sel, txt) { var e = q(sel); if (e) e.textContent = txt; }
+    cab('#vmCabVt', Math.round(calc.ventilacion.vte));
+    cab('#vmCabFr', Math.round(est.ventilador.frecuencia));
+    cab('#vmCabPeep', Math.round(est.ventilador.peep));
+
     var fl = q('#vmFlush');
     if (fl) fl.classList.toggle('activo', !!est.circuito.flushActivo);
 
@@ -626,7 +744,7 @@ SIM.maquinaVista = (function () {
     if (pu) {
       var esc = v.hayVentilacion && v.enInspiracion ? 1 + v.avanceFase * 0.14 : 1.01;
       if (!v.hayVentilacion) esc = 1;
-      pu.setAttribute('transform', 'translate(486 517) scale(' + esc.toFixed(3) + ') translate(-486 -517)');
+      pu.setAttribute('transform', 'translate(497 524) scale(' + esc.toFixed(3) + ') translate(-497 -524)');
     }
 
     /* --- Pantalla del monitor --- */
@@ -676,6 +794,7 @@ SIM.maquinaVista = (function () {
     ZONAS: ZONAS,
     zona: zona,
     markup: markup,
+    vineta: vineta,
     preparar: preparar,
     marcar: marcar,
     actualizar: actualizar
