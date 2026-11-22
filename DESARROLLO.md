@@ -1,3 +1,112 @@
+# Bitacora de desarrollo
+
+Que se construyo en cada ensayo, que fallo y por que se corrigio. Lo mas reciente va primero.
+
+## Ensayo 4 - la estetica
+
+
+**La paleta, rehecha sobre fuentes y no sobre gusto.** El aspecto de plantilla venia de dos cosas: el
+negro azulado y un acento saturado repartido por botones, chips y bordes. Se corrigieron las dos.
+
+El fondo es ahora **grafito neutro**, con saturacion de ~4% y sin tinte apreciable. El primer
+intento fue un grafito calido, de tierra, y fue una sobrecorreccion: de las dos causas del aspecto
+de plantilla, la que pesaba era el acento saturado, no que el gris fuera frio. Calentar el gris
+corrigio lo que no estaba roto y agrego un tinte sepia que envejece la vista. El gris casi neutro es
+tambien el de las carcasas y las interfaces del equipo clinico. Y la interfaz **no tiene color de acento**: lo
+interactivo se marca con contraste y peso tipografico. La regla de la paleta es que el color solo
+aparece cuando significa algo, y siempre con respaldo:
+
+- **Alarmas: rojo, amarillo y cian**, segun IEC 60601-1-8, que exige rojo para prioridad alta y
+  amarillo para media; el cian para la baja es lo que usan los monitores de la practica (indicador
+  cian para nivel bajo, fondo cian para alarmas tecnicas). Antes el amarillo era un ambar apagado y
+  la prioridad baja un oliva inventado.
+- **Gases:** su codigo de identificacion. El aire se llevo hacia el ambar y el N2O hacia un azul
+  medio para no confundirse con el amarillo y el cian de las alarmas, que ahora tienen significado
+  propio.
+- **Curvas: capnografia en blanco y presion de via aerea en gris azulado**, que es la convencion que
+  describe la Anesthesia Patient Safety Foundation: no hay estandar acordado, pero si el CO2 es
+  siempre blanco y cada parametro mantiene su color, la lectura es inequivoca. De paso, el verde
+  deja de usarse en las curvas y queda libre para significar oxigeno en todo el simulador.
+- **Agentes:** su codigo de identificacion por agente, que ya estaba.
+
+Todas las combinaciones de texto y fondo se midieron contra el criterio AA de la WCAG. Las doce
+pasan.
+
+**Referencia del campo.** El Virtual Anesthesia Machine de la Universidad de Florida, que es el
+simulador de referencia en esta materia, usa el mismo enfoque de "realidad transparente": partculas
+codificadas por color para el gas invisible, verde para O2 y azul para N2O, y en su version para
+instructores, catorce fallas mas una falla aleatoria. Coincide con lo que veniamos haciendo, incluido
+el sorteo de variantes, y confirma que el codigo de color de gases no es universal: esa version
+soporta seis codigos distintos segun el pais.
+
+**El inicio, en una sola pantalla.** A la izquierda, "Que te gustaria hacer" y los tres modos; a la
+derecha, la maquina. Antes eran dos pasos —una portada y luego los modos— y el segundo no aportaba
+nada: dos clics para llegar a lo mismo.
+
+Los tres modos dejaron de ser tarjetas. Las tres cajas iguales con su numero en un circulo son el
+patron de maqueta mas reconocible que hay, y por ahi se colaba el aire de plantilla. Ahora son una
+lista: un filete arriba, cada modo separado por una linea fina, con su titulo, una frase y una
+etiqueta pequena a la derecha. Al pasar por encima se ilumina un filo de color a la izquierda y la
+flecha avanza. Menos cajas, menos bordes redondeados, mas jerarquia tipografica.
+
+**El cuerpo de la maquina, gris claro.** Tomando como referencia la arquitectura de los equipos
+actuales: carcasa clara, columna de cajones, encimera, zocalo oscuro y ruedas. Se anadio el **brazo
+articulado** que sostiene el monitor y una **pantalla propia en el cabezal** con VT, FR y PEEP en
+vivo, que son los dos rasgos que mas identifican a una maquina moderna. El hueco del segundo
+vaporizador se convirtio en esa pantalla.
+
+De la fotografia de referencia se tomo solo la arquitectura, que es comun a todos los fabricantes y
+no es de nadie. No se copiaron proporciones, molduras, colores corporativos ni marcas.
+
+**El paciente: via aerea y pulmones.** Donde habia un circulo rojo con una raya ahora esta la via
+aerea saliendo de la pieza en Y, la traquea, la carina y los dos pulmones, que se expanden con cada
+insuflacion. Es la forma convencional de representar al paciente en un esquema de circuito, y tiene
+una ventaja sobre dibujar a una persona: se entiende igual de bien, no distrae y no cae en el valle
+inquietante. Se probo primero con una figura humana con mascarilla y el resultado era desagradable.
+
+**Vinetas en las tarjetas de escenario.** Cada falla tiene ahora una miniatura que muestra el dano:
+la manguera suelta con el gas escapando, el fuelle que no llega al tope, el capnograma plano con la
+trampa llena, el vaporizador con la ventana vacia, el manometro en cero y la cal virada con el CO2
+volviendo. Lo que esta mal se ve, y se marca en rojo.
+
+**La paleta vieja seguia escrita a mano en el CSS.** Cambiar el `:root` no basto: quedaban unos
+doscientos colores puestos directamente en las reglas, del cian `#4cc9f0` y el verde `#3ddc84`
+originales. Por eso seguian apareciendo acentos de neon en los chips de accion, en el desplegable de
+variante, en los hover y en la banda de las curvas. Se sustituyeron todos por las variables de la
+paleta, dejando fuera el dibujo de la maquina y del circuito, que no se toca. Las particulas de gas
+del circuito pasaron a los mismos valores que las etiquetas: si la bolita y la leyenda no son del
+mismo color, el codigo de identificacion no ensena nada.
+
+**Una escala tipografica, en vez de veintitres tamanos.** Habia 23 tamanos de letra y 12 radios de
+esquina distintos, puestos uno a uno. Eso es lo que hace que una interfaz se vea improvisada aunque
+cada pantalla por separado se vea bien. Ahora hay seis tamanos (10, 11, 13, 15, 18 y 26 px) y dos
+radios (3 y 5 px). El radio pequeno no es capricho: el equipo clinico es cuadrado, y la esquina muy
+redondeada pertenece a la estetica de las plantillas web.
+
+**La lectura numerica, como en un monitor.** La cifra a 26 px y la unidad pequena al lado, con
+digitos de ancho fijo para que el numero no se mueva de sitio al cambiar de valor. Los estados
+escritos con palabras ("llega al tope") se quedan en tamano de titulo, porque a 26 px no caben y
+ademas no se leen de un golpe como se lee un numero. La unidad no va en versalitas: cmH2O y mmHg
+llevan mayusculas y minusculas que significan cosas distintas.
+
+**Menos filetes.** Habia 31 recuadros con borde. Los paneles de un equipo no se separan con lineas
+sino con niveles de superficie, asi que dieciseis de ellos pasaron a distinguirse solo por el fondo,
+y el realce al pasar por encima se hace con un filete interior en vez de con el borde. Las zonas de
+dibujo (curvas y esquema) usan el fondo mas profundo, para que se lean como pantallas.
+
+**Los mandos, dibujados y no heredados.** El `<input type=range>` nativo lo dibuja cada sistema a
+su manera: en Windows queda una barra fina con un cuadrito, que no se parece a ningun mando de una
+maquina de anestesia, y ademas el simulador no se veia igual en dos computadores distintos. Ahora se
+dibujan desde el CSS: una guia hundida y una perilla redonda y clara, con el **color de
+identificacion del gas que regula** en el anillo, el mismo de la particula en el circuito y de la
+etiqueta en la leyenda. La perilla del vaporizador lleva el color del agente; la de la APL, que no
+regula un gas, va neutra.
+
+**Lo que no cambio:** modelos, perfil, alarmas, escenarios, variantes, sorteo, tutoriales, pruebas y
+textos. La suite completa se volvio a pasar sobre esta carpeta con el mismo resultado.
+
+---
+
 # Simulador de maquina de anestesia - ENSAYO 3
 
 Simulador web 2D de una maquina de anestesia generica, de arquitectura estandar y sin marca,
@@ -415,6 +524,121 @@ para razonar.
 
 ---
 
+## La valvula APL y la purga de O2
+
+Estaban dibujadas y nombradas desde el Ensayo 2, pero no hacian nada: la APL aparecia en el circuito
+de gases con su etiqueta, el flush era un boton verde en la vista de la maquina, y los dos se
+mencionaban en los textos de los manuales. Ninguno tenia estado, mando ni efecto. Ahora los dos son
+mandos de verdad.
+
+### La APL, un techo de presion graduable
+
+Es un mando continuo entre 1 y 70 cmH2O, con su control en el panel. Lo que hace depende de donde
+este:
+
+- **Abierta** (por debajo de 12 cmH2O): el gas fresco se va a la evacuacion en lugar de llenar la
+  bolsa, y al apretarla el gas toma el camino libre antes que los pulmones. El volumen entregado cae
+  de forma progresiva hasta cero en la apertura total.
+- **En posicion de trabajo**: fija el techo de presion del circuito. Lo que pasa de ese valor sale a
+  la evacuacion.
+- **Cerrada** (por encima del 70 % de la escala): no hay techo. El gas entra y no tiene por donde
+  salir, asi que la presion sube respiracion tras respiracion — y no solo el pico, tambien la linea
+  de base, que es lo que dispara la alarma de presion sostenida.
+
+**Solo esta en el circuito en ventilacion manual.** En mecanica el selector de bolsa la deja fuera
+del paso, y el mando lo dice en lugar de limitarse a no responder, porque eso tambien es una leccion.
+
+### La purga de O2, con sus tres efectos a la vez
+
+Es un pulsador: entrega mientras se mantiene apretado, unos 50 L/min directos a la salida comun. En
+el simulador hace las tres cosas que hace en una maquina real, y las tres salen del modelo:
+
+1. **Rellena el circuito** en segundos, que es para lo que se usa (M4 7-12 [142]).
+2. **Sube la FiO2** hacia el 100 %, porque es oxigeno puro.
+3. **Diluye el agente anestesico** hasta casi cero, porque entra aguas arriba del vaporizador. Es el
+   efecto que casi nadie tiene presente y una causa conocida de despertar intraoperatorio.
+
+Y hay una combinacion peligrosa que **no esta escrita en ningun sitio del codigo**: pulsar la purga
+con la APL cerrada. Son 50 L/min en un circuito sin escape. El modelo lo resuelve solo — la presion
+pico llega a 88 cmH2O y saltan a la vez la alarma de presion alta, la de presion sostenida y la de
+agente ausente. El estudiante lo puede descubrir por su cuenta, que es la mejor forma de aprenderlo.
+
+### Donde entran en los escenarios
+
+**El escenario 1 ahora tiene dos variantes**, sorteadas al entrar:
+
+- **Sello del absorbedor fuera de sitio**: la fuga real de siempre, en ventilacion mecanica.
+- **Valvula APL abierta**: la misma imagen exacta — la bolsa no se llena, no hay presion, el volumen
+  no llega — **sin que haya ninguna fuga**. El circuito esta estanco y la maquina esta sana: lo que
+  esta mal es un mando.
+
+La segunda ensena algo que ninguna otra falla del simulador ensena: que un mando mal puesto da la
+misma imagen que una averia y se arregla en un segundo, y que conviene mirar los mandos antes de
+salir a buscar agujeros. Ademas la APL **no tiene sensor**, asi que no hay ni puede haber una alarma
+que diga "APL abierta". Solo se ven las consecuencias.
+
+**La prueba de fuga ahora exige cerrar la APL.** Si esta abierta, el circuito no llega a los 30
+cmH2O por mucho que este estanco, y la prueba lo dice con todas las letras en lugar de reportar una
+fuga inexistente. Es la causa numero uno de pruebas de fuga fallidas que no son fugas, y antes el
+simulador la ignoraba.
+
+**Tres acciones nuevas** en el escenario 1: mirar la posicion de la APL (correcta en la variante
+APL), llevarla a una posicion de trabajo (correcta solo tras haberla mirado) y pulsar la purga de O2
+(correcta en la variante del sello como medida inmediata, incorrecta en la de la APL, porque con la
+valvula abierta esos 50 L/min van derechos a la evacuacion).
+
+### Una accion que sigue sin uso
+
+`llamar_servicio`, en el escenario 1, no es correcta en ninguna de las dos variantes. Es la unica
+accion decorativa que queda en todo el simulador. Tiene arreglo natural: una tercera variante con el
+fuelle perforado, que es una fuga que no se corrige en quirofano y donde escalar si seria la
+respuesta. Queda anotado aqui para decidirlo.
+
+---
+
+## El circuito de gases como banco de pruebas
+
+El circuito de gases dejo de ser una ilustracion que responde a lo que pasa en el escenario y paso a
+ser un sitio donde se puede trastear. Se abre con el boton de siempre y ahora trae su propio panel
+de mandos a la derecha.
+
+**El ramal de la purga, por fin dibujado.** Sale del suministro de O2 antes de los flujometros, corre
+por encima de todo hasta el pulsador y baja directo a la salida comun, esquivando el colector y el
+vaporizador. Ese atajo es la explicacion grafica de lo que mas cuesta entender de la purga: no pasa
+por el vaporizador, luego no lleva agente. Al pulsarla, las bolitas de ese ramal se ponen en marcha
+y el resto del circuito se acelera. Sigue cumpliendose la regla geometrica del esquema: 27 tramos,
+todos horizontales o verticales, cero cruces.
+
+**Los mandos del banco.** Flujometros de O2, aire y N2O; dial del vaporizador; valvula APL; purga;
+selector de bolsa o ventilador; y un boton para agotar la cal sodada o poner una nueva. Todo actua
+sobre la misma maquina que esta simulando, asi que el circuito responde en vivo.
+
+**El selector de agente anestesico**, con los cinco halogenados y su codigo de color
+internacional: sevoflurano amarillo, isoflurano morado, desflurano azul, halotano rojo, enflurano
+naranja. Al cambiarlo, el vaporizador y el gas que sale de el cambian de color en el dibujo.
+
+Y con el agente llega el dato que de verdad importa y que el dial no dice: **la fraccion de CAM**.
+Con el dial en 2 %, el sevoflurano son 1,0 CAM, el isoflurano 1,7 y el halotano 2,8. El mismo numero
+en el mismo mando significa tres profundidades distintas, y eso explica por que los vaporizadores
+son especificos de agente y por que el llenado esta codificado.
+
+El desflurano tiene su propio aviso, porque es el caso extremo: su presion de vapor es de 669 mmHg a
+20 C, mas de cuatro veces la del sevoflurano, asi que hierve casi a temperatura ambiente. Un
+vaporizador de derivacion variable como el de esta maquina no puede dosificarlo y entregaria muy por
+encima de lo fijado. Si se selecciona, el bloque del vaporizador se marca en rojo y el recuadro
+explica por que ese error, en una maquina real, lo impide el sistema de llenado.
+
+**El recuadro "Que puede pasar".** Cada vez que se toca un mando, escribe la consecuencia concreta
+de ese cambio: que pasa si se cierra el O2 con N2O abierto, por que subir el aire baja la FiO2, que
+significa una APL abierta frente a una cerrada, por que la purga diluye el agente, que le ocurre al
+CO2 inspirado cuando la cal se agota y por que subir el gas fresco lo compensa. No son avisos
+genericos: el texto depende del valor concreto en el que se deja el mando.
+
+Y un boton para volver al estado normal, porque la gracia de un banco de pruebas es poder romperlo
+todo sin miedo.
+
+---
+
 ## Un fallo corregido en el motor de alarmas
 
 Las alarmas de prioridad **alta aparecian las ultimas** en la banda. La causa: el comparador de
@@ -569,6 +793,7 @@ simulador: donde estan las alarmas, como se leen las variables y para que sirven
 
 - Guion del escenario 1: 16 pasos (incluye el aprendizaje de la interfaz y los flujometros)
 - Guion del escenario 2: 13 pasos (empuje frente a volumen, y cuando escalar a servicio)
+- Guiones del escenario 1, uno por variante: 18 pasos el sello y 12 la valvula APL abierta
 - Guiones del escenario 6, uno por variante: 12 pasos la cal agotada, 12 el color enganoso y 13 la
   valvula incompetente
 - Guiones del escenario 5, uno por variante: 11 pasos la tuberia, 11 el cilindro en reserva y 12 la

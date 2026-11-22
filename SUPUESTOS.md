@@ -389,3 +389,91 @@ mmHg, que es coherente con la fuente pero describe una situacion mucho mas avanz
 de monoxido de carbono, que son fenomenos reales y bien documentados en la literatura pero no en los
 manuales que este trabajo cita. Tampoco el canal preferente (channeling) dentro del canister, que
 daria un agotamiento parcial con color irregular, ni la cal mal cargada.
+
+---
+
+## Valvula APL y purga de O2 (Ensayo 3)
+
+**Escala de la APL: de 1 a 70 cmH2O.** [I]. Las valvulas APL graduadas de las maquinas de anestesia
+cubren aproximadamente ese rango, de apertura casi libre a cierre, pero ninguno de los manuales
+citados publica la escala. Lo que si consta, y es lo que justifica modelarla, es que la prueba de
+fuga del circuito exige cerrarla para alcanzar los 30 cmH2O (M2 p.88 [96]; M12 p.1-2).
+
+**Umbral de sellado: 12 cmH2O.** [P]. Por debajo de ese ajuste el simulador hace caer de forma
+progresiva el volumen que llega al paciente, hasta cero en la apertura total. La direccion del
+fenomeno es fisica —el gas toma el camino de menor resistencia—, pero el punto en el que empieza a
+notarse es una eleccion de diseno.
+
+**Caudal que se pierde por la APL abierta: equivalente a 25 L/min medidos a 30 cmH2O.** [P]. Elegido
+para que la bolsa no se llene y para que la prueba de fuga no alcance la presion objetivo, que es el
+comportamiento que se quiere ensenar. No corresponde a ninguna medida publicada.
+
+**Acumulacion de presion con la APL cerrada.** [P] en el ritmo, [I] en el fenomeno. Que un circuito
+sin via de escape acumule presion mientras entra gas fresco es mecanica de fluidos elemental; la
+constante con la que sube en el simulador se ajusto para que el efecto sea visible en unos segundos
+y no en varios minutos. La presion real dependeria del volumen del circuito y de la distensibilidad
+del sistema y del paciente.
+
+**Caudal de la purga de O2: 50 L/min.** [I]. La literatura tecnica situa la purga entre 35 y 75
+L/min; M4 7-12 [142] la menciona como maniobra ante una concertina que no se rellena, pero no da el
+caudal. El valor central se eligio por eso.
+
+**Que la purga no lleve agente.** [I]. Se sigue de su conexion: toma el oxigeno aguas arriba de los
+flujometros y del vaporizador. Es la base del riesgo de dilucion y de despertar intraoperatorio, y
+en el simulador el agente medido cae de 2,1 % a 0,08 % mientras se mantiene pulsada.
+
+**Subida de presion por la purga: +3 cmH2O con escape libre, +18 con la APL cerrada.** [P]. Cifras
+de diseno para que la diferencia entre las dos situaciones sea inequivoca.
+
+**Umbral de la alarma de presion alta: 40 cmH2O.** [P]. Por encima del limite de presion de fabrica
+de 30 cmH2O (M3 F-4 [272]). Las fuentes citadas no fijan el umbral de esta alarma.
+
+---
+
+## Agentes anestesicos (Ensayo 3)
+
+**Codigo de color por agente: sevoflurano amarillo, isoflurano morado, desflurano azul, halotano
+rojo, enflurano naranja.** [I]. Es el codigo internacional de identificacion por agente, el mismo de
+las botellas y de los vaporizadores, pero no aparece en los manuales M1-M12, que describen la
+maquina y no los farmacos.
+
+**Valores de CAM: sevoflurano 2,0 %, isoflurano 1,15 %, desflurano 6,0 %, halotano 0,75 %,
+enflurano 1,7 %.** [I]. Son constantes de farmacologia tomadas de la literatura estandar, no de los
+manuales citados. Se usan para traducir el ajuste del dial a fraccion de CAM, que es lo que indica
+la profundidad. Varian con la edad del paciente y con el uso de N2O, cosa que el simulador no
+representa: muestra la CAM del adulto sin coadyuvantes.
+
+**Presiones de vapor a 20 C: 157, 240, 669, 243 y 172 mmHg respectivamente.** [I]. Constantes
+fisicoquimicas de la literatura estandar. En el simulador solo se usan para justificar el aviso del
+desflurano.
+
+**Factor de sobredosificacion con un agente incompatible: 3,2 veces lo fijado.** [P]. El orden de
+magnitud sale de la relacion de presiones de vapor entre el desflurano y el sevoflurano, pero
+ninguna fuente lo cuantifica, entre otras cosas porque el llenado codificado hace que la situacion
+no se de en la practica. Esta puesto para que el aviso tenga consecuencia visible, no como dato.
+
+**Velocidad de las particulas del ramal de la purga.** [P]. Como el resto de la animacion del
+circuito, la velocidad es proporcional al caudal pero la escala es de presentacion.
+
+---
+
+## Paleta de la interfaz (Ensayo 4)
+
+**Colores de alarma: rojo alta, amarillo media, cian baja.** [M] en el criterio. IEC 60601-1-8 exige
+rojo para prioridad alta y amarillo para media; el cian para la prioridad baja y para las alarmas
+tecnicas es la practica documentada en los manuales de monitor (indicador cian, fondo cian del
+mensaje). Los valores hexadecimales concretos son eleccion de diseno: la norma fija el color, no el
+tono exacto.
+
+**Colores de las curvas: CO2 blanco, presion de via aerea gris azulado.** [I]. La Anesthesia Patient
+Safety Foundation afirma expresamente que no existen estandares acordados para los colores de las
+trazas, y describe la convencion de uso: CO2 siempre blanco, presion arterial roja, pulsioximetria
+amarilla, temperatura cian. Se sigue esa convencion en lo que aplica al simulador.
+
+**Colores de gases.** Ya declarados antes. Conviene recordar que el codigo no es universal: el
+Virtual Anesthesia Machine de la Universidad de Florida ofrece seis codigos de color de gases
+medicinales distintos segun el pais, asi que el trabajo debe declarar cual adopta.
+
+**El resto de la paleta** (grises, fondos, jerarquia) es decision de diseno sin respaldo documental.
+Lo unico comprobado objetivamente es el contraste: todas las combinaciones de texto y fondo cumplen
+el criterio AA de la WCAG, 4,5:1 para texto normal.

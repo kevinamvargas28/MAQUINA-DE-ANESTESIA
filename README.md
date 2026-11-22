@@ -3,8 +3,7 @@
 Simulador 2D de una máquina de anestesia para formación en identificación y resolución de fallas.
 Trabajo de grado en Ingeniería Biomédica.
 
-**[Abrir el simulador](https://USUARIO.github.io/simulador-anestesia/)**
-*(reemplazar `USUARIO` por el usuario de GitHub una vez publicado)*
+**[Abrir el simulador](https://kevinamvargas28.github.io/MAQUINA-DE-ANESTESIA/)**
 
 ---
 
@@ -31,7 +30,7 @@ Tres modos desde la pantalla de inicio:
 
 | # | Falla | Variantes |
 |---|---|---|
-| 1 | Fuga o desconexión del circuito respiratorio | 1 |
+| 1 | Fuga o desconexión del circuito respiratorio | 2 |
 | 2 | Falla del ventilador | 1 |
 | 3 | Falla del monitoreo de gases | 3 |
 | 4 | Falla del vaporizador | 3 |
@@ -40,6 +39,26 @@ Tres modos desde la pantalla de inicio:
 
 Las fallas con variantes presentan el mismo síntoma por causas distintas, y la variante se sortea al
 entrar: el ejercicio no es recordar un procedimiento, es distinguir entre cuadros que se parecen.
+
+## La interfaz
+
+La interfaz no lleva color propio: el color aparece solo cuando significa algo, y cada familia tiene
+respaldo documental.
+
+- **Alarmas**: rojo para prioridad alta, amarillo para media y cian para baja, según la norma
+  IEC 60601-1-8 y la práctica de los monitores clínicos.
+- **Gases**: el código de identificación por gas, que no es universal — el simulador declara cuál
+  adopta.
+- **Agentes**: el código de identificación por agente.
+- **Curvas**: capnografía en blanco y presión de vía aérea en gris azulado, siguiendo la convención
+  de quirófano. El verde queda así libre para significar oxígeno en todo el simulador.
+
+Las lecturas numéricas se componen como en un monitor: la cifra grande, la unidad pequeña al lado y
+dígitos de ancho fijo, para que el número no cambie de sitio al cambiar de valor. Los mandos no son
+los controles nativos del navegador, que cada sistema dibuja distinto, sino perillas dibujadas con
+el color de identificación del gas que regulan.
+
+Todas las combinaciones de texto y fondo cumplen el criterio AA de la WCAG.
 
 ## Cómo está construido
 

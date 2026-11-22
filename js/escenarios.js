@@ -36,6 +36,60 @@ SIM.escenarios = (function () {
 
     variablesCapa1: ['ppico', 'vti_vte', 'mv', 'etco2', 'concertina'],
 
+    variantes: [
+      {
+        id: 'sello',
+        nombre: 'Sello del absorbedor fuera de sitio',
+        resumen: 'Fuga real en ventilacion mecanica: el sello del canister quedo mal asentado.',
+        sintoma: 'La concertina ya no sube hasta el tope de la camara y la bolsa se vacia. ' +
+                 'El volumen espirado es menor que el inspirado.',
+        variablesCapa1: ['ppico', 'vti_vte', 'mv', 'etco2', 'concertina'],
+        aplicar: function (est) {
+          est.circuito.fugaQ30 = 6000;
+          est.circuito.modo = 'mecanica';
+          est.circuito.aplCmH2O = SIM.pv('apl.nominal');
+          est.circuito._causa = 'sello del canister del absorbedor mal asentado';
+        },
+        verificar: function (est, calc, perfil) {
+          return {
+            ok: est.circuito.fugaQ30 <= SIM.pv('pruebas.fugaAceptable', perfil) * 2 &&
+                calc.ventilacion.vte > calc.ventilacion.vti * 0.9,
+            texto: 'Con el sello en su sitio la fuga baja del limite, la concertina vuelve al tope y el ' +
+                   'volumen espirado iguala al inspirado.',
+            cita: 'M1 5-42 [162]; M4 7-19 [149]'
+          };
+        }
+      },
+      {
+        id: 'apl',
+        nombre: 'Valvula APL abierta',
+        resumen: 'Parece una fuga y no lo es: el gas se va por la APL a la evacuacion.',
+        sintoma: 'Estas ventilando a mano durante la induccion y la bolsa no se llena. Aprietas y el ' +
+                 'paciente apenas recibe volumen: la presion no sube de unos pocos cmH2O. El circuito se ' +
+                 'conecto y se reviso hace diez minutos.',
+        variablesCapa1: ['ppico', 'vti_vte', 'apl', 'mv', 'concertina'],
+        /* No hay fuga: el circuito esta estanco y la APL abierta del
+           todo. El gas fresco se va a la evacuacion en lugar de llenar
+           la bolsa, y al apretar, el gas sale por el camino libre. */
+        aplicar: function (est) {
+          est.circuito.fugaQ30 = 0;
+          est.circuito.modo = 'manual';
+          est.circuito.aplCmH2O = SIM.pv('apl.minima');
+          est.circuito._causa = 'la valvula APL quedo abierta del todo';
+        },
+        verificar: function (est, calc, perfil) {
+          return {
+            ok: est.circuito.aplCmH2O >= SIM.pv('apl.umbralSello', perfil) &&
+                est.circuito.aplCmH2O < SIM.pv('apl.maxima', perfil) * 0.7 &&
+                calc.ventilacion.ppico > 10,
+            texto: 'Con la APL en una posicion de trabajo la bolsa se llena, la presion sube al apretar y el ' +
+                   'paciente recibe su volumen. No habia nada roto: habia un mando mal puesto.',
+            cita: 'M2 p.88 [96]; M12 p.1-2'
+          };
+        }
+      }
+    ],
+
     capa2: 'El circuito es un sistema cerrado que se presuriza con cada inspiracion. ' +
            'Si hay un orificio, parte del gas sale por ahi en lugar de entrar al paciente: ' +
            'la presion pico no sube hasta lo esperado y el volumen que vuelve es menor que el que salio. ' +
@@ -68,14 +122,18 @@ SIM.escenarios = (function () {
        M4 7-19 [149] lo senalan como causa de una fuga importante.
        Se parte de anestesia de flujo bajo (2 L/min) porque el sintoma de
        la concertina es mas claro con gas fresco bajo (M2 p.169 [177]). */
-    aplicar: function (est) {
-      est.circuito.fugaQ30 = 6000;         // mL/min a 30 cmH2O
+    aplicar: function (est, varianteId) {
+      est.circuito.fugaQ30 = 0;
       est.circuito.desconectado = false;
       est.circuito.sellosRevisados = false;
+      est.circuito.flushActivo = false;
       est.flujometros.o2 = 1.0;
       est.flujometros.aire = 1.0;
       est.flujometros.n2o = 0;
-      est.circuito._causa = 'sello del canister del absorbedor mal asentado';
+      est._aplRevisada = false;
+      est._variante = varianteId || 'sello';
+      var v = this.variantes.filter(function (x) { return x.id === est._variante; })[0];
+      if (v) v.aplicar(est);
     },
 
     /* Acciones elegibles de la capa 1 */
@@ -86,7 +144,7 @@ SIM.escenarios = (function () {
         proposito: 'Protege al paciente antes de diagnosticar nada.',
         tipo: 'proteccion',
         ordenRecomendado: 1,
-        correcta: true,
+        correcta: function (est) { return est._variante === 'apl' ? 'parcial' : true; },
         efecto: function (est) { est.circuito.modo = 'manual'; },
         explicacion: 'Correcto como primer paso. Todos los manuales indican proteger al paciente antes de diagnosticar. ' +
                      'Ademas, al ocluir la pieza en Y se puede ver si la presion se sostiene.',
@@ -109,7 +167,7 @@ SIM.escenarios = (function () {
         proposito: 'Localiza el componente. Sin esto no sabes que corregir.',
         tipo: 'observacion',
         ordenRecomendado: 3,
-        correcta: true,
+        correcta: function (est) { return est._variante === 'apl' ? 'parcial' : true; },
         efecto: function (est, ctx) {
           est.circuito.sellosRevisados = true;
           ctx.revelar('causa');
@@ -139,13 +197,87 @@ SIM.escenarios = (function () {
         proposito: 'Corrige la causa, una vez localizada.',
         tipo: 'correccion',
         ordenRecomendado: 5,
-        correcta: function (est) { return est.circuito.sellosRevisados; },
+        correcta: function (est) {
+          if (est._variante !== 'sello') return false;
+          return est.circuito.sellosRevisados;
+        },
         efecto: function (est) {
           if (est.circuito.sellosRevisados) { est.circuito.fugaQ30 = 18; }
         },
         explicacion: 'Correcto si antes se identifico el componente. Corregir sin localizar la fuga es cambiar piezas a ciegas.',
         explicacionSiIncorrecta: 'Todavia no sabes que sello cambiar. Inspecciona el circuito por tramos antes de corregir.',
         cita: 'M1 5-43 [163]'
+      },
+      {
+        id: 'revisar_apl',
+        etiqueta: 'Mirar en que posicion esta la valvula APL',
+        proposito: 'Descartar que el gas se este yendo por donde debe irse lo que sobra.',
+        tipo: 'observacion',
+        ordenRecomendado: 2,
+        correcta: function (est) { return est._variante === 'apl' ? true : 'parcial'; },
+        efecto: function (est, ctx) { est._aplRevisada = true; ctx.revelar(['apl']); },
+        explicacion: 'Ahi esta: la APL esta abierta del todo. Y entonces esto no es una fuga, es el ' +
+                     'circuito haciendo exactamente lo que le pediste. La APL existe para dejar salir lo ' +
+                     'que sobra hacia la evacuacion; abierta del todo, lo que sobra es todo. El gas fresco ' +
+                     'se va en lugar de llenar la bolsa, y al apretar, el gas prefiere el camino libre ' +
+                     'antes que los pulmones del paciente.',
+        explicacionSiIncorrecta: 'La APL esta en una posicion de trabajo normal, asi que no es la causa. ' +
+                                 'Mirarla cuesta un segundo y descarta la explicacion mas tonta y mas ' +
+                                 'frecuente de "no consigo presion", asi que no la des por descartada sin ' +
+                                 'mirar. Ademas, en ventilacion mecanica la APL ni siquiera esta en el ' +
+                                 'circuito: el selector de bolsa la deja fuera del paso.',
+        cuando: 'Siempre que ventilando a mano no consigas presion ni llenar la bolsa, y antes de buscar ' +
+                'una fuga por los tramos.',
+        cita: 'M2 p.88 [96]; M12 p.1-2 (la prueba de fuga exige cerrar la APL)'
+      },
+      {
+        id: 'cerrar_apl',
+        etiqueta: 'Llevar la APL a una posicion de trabajo',
+        proposito: 'Devolver al circuito el techo de presion que necesita.',
+        tipo: 'correccion',
+        ordenRecomendado: 3,
+        correcta: function (est) {
+          if (est._variante !== 'apl') return false;
+          return est._aplRevisada ? true : 'parcial';
+        },
+        efecto: function (est) { est.circuito.aplCmH2O = SIM.pv('apl.nominal'); },
+        explicacion: 'La bolsa se llena y la presion sube al apretar. Fijate en lo que acabas de aprender ' +
+                     'sobre este mando: no es un interruptor de abierto y cerrado, es un techo de presion. ' +
+                     'En 20 cmH2O el circuito se presuriza hasta ahi y lo que sobra se va; cerrada del todo ' +
+                     'no hay techo y la presion se acumula hasta hacer dano. La APL mal puesta hace dano en ' +
+                     'las dos direcciones, y ninguna alarma te avisa de su posicion porque no tiene sensor.',
+        explicacionSiIncorrecta: 'La APL ya estaba bien puesta, asi que moverla no corrige nada y puede ' +
+                                 'crear un problema: si la dejas cerrada del todo, el gas entra y no tiene ' +
+                                 'por donde salir.',
+        cuando: 'Cuando compruebas que esta abierta y estas ventilando a mano.',
+        cita: 'M12 p.1-2'
+      },
+      {
+        id: 'pulsar_flush',
+        etiqueta: 'Pulsar la purga de O2 para rellenar el circuito',
+        proposito: 'Medida inmediata: meter volumen de golpe.',
+        tipo: 'correccion',
+        ordenRecomendado: 2,
+        correcta: function (est) { return est._variante === 'sello' ? true : false; },
+        efecto: function (est) {
+          if (est._variante === 'sello') est.circuito.llenado = 1;
+        },
+        explicacion: 'Correcto como medida inmediata, y es la que el manual indica ante una concertina que ' +
+                     'no llega al tope: revisar el gas impulsor, subir el gas fresco o pulsar la purga de ' +
+                     'O2. Entrega unos 50 L/min directos a la salida comun y rellena el circuito en ' +
+                     'segundos. Pero ten presente lo que acabas de hacer: ese oxigeno entra aguas arriba ' +
+                     'del vaporizador, asi que no lleva agente y diluye el que habia. Un flush sostenido ' +
+                     'puede dejar al paciente superficial, y esa es una de las causas conocidas de ' +
+                     'despertar intraoperatorio. Rellena, diagnostica y vuelve al gas fresco normal.',
+        explicacionSiIncorrecta: 'Con la APL abierta la purga no sirve de nada: estas metiendo 50 L/min por ' +
+                                 'un circuito que tiene la salida abierta de par en par, asi que el gas va ' +
+                                 'directo a la evacuacion sin llenar la bolsa. Y si la APL hubiera estado ' +
+                                 'cerrada, el resultado habria sido el contrario y peor: 50 L/min sin ' +
+                                 'escape posible son una subida de presion brusca y riesgo de barotrauma. ' +
+                                 'La purga nunca se pulsa sin saber como esta la APL.',
+        cuando: 'Cuando el circuito ha perdido volumen y necesitas rellenarlo ya, con la APL en una ' +
+                'posicion de trabajo.',
+        cita: 'M4 7-12 [142]'
       },
       {
         id: 'subir_gas_fresco',
@@ -184,8 +316,10 @@ SIM.escenarios = (function () {
       }
     ],
 
-    /* Verificacion final (seccion 4.1) */
+    /* Verificacion final (seccion 4.1), por variante */
     verificar: function (est, calc, perfil) {
+      var v = this.variantes.filter(function (x) { return x.id === est._variante; })[0];
+      if (v) return v.verificar(est, calc, perfil);
       var limite = SIM.pv('pruebas.fugaAceptable', perfil);
       return {
         ok: est.circuito.fugaQ30 <= limite && !est.circuito.desconectado,

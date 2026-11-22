@@ -51,9 +51,14 @@ SIM.esquema = (function () {
     fmAire:    { x: 694, y: 330, w: 52,  h: 160, t: 'Aire',             mod: 'flujometros' },
     fmN2O:     { x: 754, y: 330, w: 52,  h: 160, t: 'N2O',              mod: 'flujometros' },
 
-    colector:  { x: 858, y: 276, w: 134, h: 68,  t: 'Colector de mezcla', mod: 'flujometros', et: 'der' },
+    colector:  { x: 858, y: 276, w: 134, h: 68,  t: 'Colector',           mod: 'flujometros', et: 'der' },
     vapor:     { x: 858, y: 386, w: 134, h: 120, t: 'Vaporizador',        mod: 'vaporizador', et: 'der' },
     cgo:       { x: 864, y: 556, w: 122, h: 54,  t: 'Salida comun',       mod: 'vaporizador', et: 'der' },
+
+    /* La purga toma O2 del suministro, antes de los flujometros y del
+       vaporizador, y lo manda directo a la salida comun. Ese atajo es
+       la razon de que el gas de la purga no lleve agente. */
+    flush:     { x: 1050, y: 172, w: 110, h: 56, t: 'Purga de O2',     mod: 'suministro', et: 'der' },
 
     valvInsp:  { x: 520, y: 668, w: 84,  h: 64,  t: 'Valvula insp.',    mod: 'circuito' },
     paciente:  { x: 1118, y: 738, w: 134, h: 142, t: 'Paciente',        mod: 'circuito' },
@@ -76,6 +81,9 @@ SIM.esquema = (function () {
     tubN2O:   [[122, 506], [380, 506]],
     feedN2O:  [[500, 506], [580, 506], [580, 530], [780, 530], [780, 442]],
     cilN2O:   [[146, 674], [330, 674], [330, 506]],
+
+    aFlush:    [[355, 278], [355, 200], [1050, 200]],
+    flushSal:  [[1105, 228], [1105, 530], [965, 530], [965, 556]],
 
     busO2:    [[660, 334], [660, 310]],
     busAire:  [[720, 334], [720, 310]],
@@ -246,6 +254,16 @@ SIM.esquema = (function () {
       '</g>';
     },
 
+    /* --- Purga de O2: pulsador de la superficie de trabajo --- */
+    flush: function (b) {
+      var cx = b.x + b.w / 2, cy = b.y + b.h / 2;
+      return '<g>' +
+        '<rect class="gi-caja" x="' + b.x + '" y="' + b.y + '" width="' + b.w + '" height="' + b.h + '" rx="8"/>' +
+        '<circle class="gi-flush-aro" cx="' + cx + '" cy="' + cy + '" r="19"/>' +
+        '<circle class="gi-flush" id="gi-flush" cx="' + cx + '" cy="' + cy + '" r="13"/>' +
+      '</g>';
+    },
+
     /* --- Colector: barra de mezcla con tres entradas --- */
     colector: function (b) {
       var s = '<g><rect class="gi-cuerpo" x="' + (b.x + 6) + '" y="' + (b.y + 10) + '" width="' + (b.w - 12) +
@@ -362,9 +380,11 @@ SIM.esquema = (function () {
       var cx = b.x + b.w / 2;
       return '<g>' +
         '<rect class="gi-apl-base" x="' + (cx - 16) + '" y="' + (b.y + 2) + '" width="32" height="14" rx="4"/>' +
-        '<circle class="gi-apl" cx="' + cx + '" cy="' + (b.y + 26) + '" r="13"/>' +
-        '<line class="gi-apl-m" x1="' + cx + '" y1="' + (b.y + 16) + '" x2="' + cx + '" y2="' + (b.y + 22) + '"/>' +
-        '<text class="gi-mini c" x="' + cx + '" y="' + (b.y + 52) + '">APL</text>' +
+        '<circle class="gi-apl" id="gi-apl" cx="' + cx + '" cy="' + (b.y + 26) + '" r="13"/>' +
+        '<g id="gi-aplAguja" style="transform-origin:' + cx + 'px ' + (b.y + 26) + 'px">' +
+          '<line class="gi-apl-m" x1="' + cx + '" y1="' + (b.y + 16) + '" x2="' + cx + '" y2="' + (b.y + 22) + '"/>' +
+        '</g>' +
+        '<text class="gi-mini c" x="' + cx + '" y="' + (b.y + 52) + '">APL <tspan id="gi-aplVal">20</tspan></text>' +
         '<path class="gi-tubo-rig" d="M ' + cx + ' ' + (b.y + 39) + ' V ' + (b.y + 58) + '"/>' +
         '<ellipse class="gi-bolsa" id="' + idBolsa + '" cx="' + cx + '" cy="' + (b.y + 92) + '" rx="34" ry="32"/>' +
         '<ellipse class="gi-bolsa-br" cx="' + (cx - 11) + '" cy="' + (b.y + 80) + '" rx="8" ry="11"/>' +
@@ -427,7 +447,8 @@ SIM.esquema = (function () {
       linea('insp1', 'g-mezcla') + linea('insp2', 'g-mezcla') + linea('aPaciente', 'g-mezcla') +
       linea('esp1', 'g-esp') + linea('esp2', 'g-esp') +
       linea('retorno1', 'g-esp') + linea('retorno2', 'g-mezcla') +
-      linea('aFuelle', 'g-esp') + linea('aBolsa', 'g-esp') + linea('aAgss', 'g-res');
+      linea('aFuelle', 'g-esp') + linea('aBolsa', 'g-esp') + linea('aAgss', 'g-res') +
+      linea('aFlush', 'g-o2') + linea('flushSal', 'g-o2');
 
     var nodos =
       nodo('cilO2',     DIB.cilindro(B.cilO2, 'o2', { cuerpo: 'gi-cilO2', aguja: 'gi-agCilO2' })) +
@@ -451,6 +472,7 @@ SIM.esquema = (function () {
       nodo('absorb',    DIB.absorbedor(B.absorb, 'gi-virado')) +
       nodo('fuelle',    DIB.fuelle(B.fuelle, 'gi-fuelle', 'gi-pliegues')) +
       nodo('bolsa',     DIB.bolsa(B.bolsa, 'gi-bolsa')) +
+      nodo('flush',     DIB.flush(B.flush)) +
       nodo('agss',      DIB.agss(B.agss));
 
     return '' +
@@ -522,6 +544,7 @@ SIM.esquema = (function () {
     { id: 'cilO2', c: 'o2' }, { id: 'tubO2', c: 'o2' }, { id: 'feedO2', c: 'o2' },
     { id: 'tubAire', c: 'aire' }, { id: 'feedAire', c: 'aire' },
     { id: 'tubN2O', c: 'n2o' }, { id: 'feedN2O', c: 'n2o' }, { id: 'cilN2O', c: 'n2o' },
+    { id: 'aFlush', c: 'o2' }, { id: 'flushSal', c: 'o2' },
     { id: 'busO2', c: 'o2' }, { id: 'busAire', c: 'aire' }, { id: 'busN2O', c: 'n2o' },
     { id: 'aColector', c: 'mezcla' }, { id: 'aVapor', c: 'mezcla' },
     { id: 'aCgo', c: 'agente' }, { id: 'aCircuito', c: 'agente' },
@@ -603,6 +626,12 @@ SIM.esquema = (function () {
     mover('retorno2', esp, base > 0);
     mover('aFuelle', v.ventilaMecanica ? base : 0, v.ventilaMecanica && base > 0);
     mover('aBolsa', v.ventilaManual ? base : base * 0.3, base > 0);
+
+    /* La purga mueve mucho gas, pero solo mientras esta pulsada. El
+       dato sale del calculo: en esta funcion no hay estado. */
+    var hayFlush = (gf.flush || 0) > 0;
+    mover('aFlush', hayFlush ? 1.8 : 0, hayFlush);
+    mover('flushSal', hayFlush ? 1.8 : 0, hayFlush);
     mover('aAgss', gf.fgf * 0.02, gf.fgf > 0.05);
   }
 
@@ -643,6 +672,40 @@ SIM.esquema = (function () {
     val('absorb', n0(Math.max(0, 100 - est.circuito.absorbedorAvance * 100)) + ' % de capacidad');
     val('fuelle', v.ventilaMecanica ? n0(v.llenado * 100) + ' % de llenado' : 'en reposo');
     val('bolsa', est.circuito.modo === 'manual' ? 'en uso' : 'en espera');
+
+    /* Purga: el pulsador se enciende y el bloque dice su caudal. */
+    var hayFlush = !!est.circuito.flushActivo;
+    var elFlush = q('#gi-flush');
+    if (elFlush) elFlush.classList.toggle('activo', hayFlush);
+    val('flush', hayFlush ? n1(SIM.pv('flush.caudal')) + ' L/min' : 'en reposo');
+    cls('flush', 'activo', hayFlush);
+
+    /* Cada agente tiene su color de identificacion, y el circuito lo usa
+       en el vaporizador y en el gas que sale de el. */
+    if (calc.vaporizador && calc.vaporizador.color) {
+      svg.style.setProperty('--agente', calc.vaporizador.color);
+    }
+    var vp = q('#blq-vapor');
+    if (vp) vp.classList.toggle('incompatible', !!(calc.vaporizador && calc.vaporizador.incompatible));
+
+    /* La APL: la aguja gira con el ajuste y la pieza se marca cuando
+       esta fuera de una posicion de trabajo. */
+    var ap = calc.apl || { ajuste: est.circuito.aplCmH2O, enCircuito: false, sello: 1 };
+    /* Ojo: en este archivo ya existe una funcion llamada aguja(), asi
+       que la variable lleva otro nombre o la tapa dentro de la funcion. */
+    var agujaApl = q('#gi-aplAguja');
+    if (agujaApl) {
+      var fracApl = (ap.ajuste - SIM.pv('apl.minima')) /
+                    Math.max(1, SIM.pv('apl.maxima') - SIM.pv('apl.minima'));
+      agujaApl.style.transform = 'rotate(' + (-135 + fracApl * 270).toFixed(1) + 'deg)';
+    }
+    var aplVal = q('#gi-aplVal');
+    if (aplVal) aplVal.textContent = ap.enCircuito ? Math.round(ap.ajuste) : '--';
+    var aplPieza = q('#gi-apl');
+    if (aplPieza) {
+      aplPieza.classList.toggle('abierta', ap.enCircuito && ap.sello < 0.5);
+      aplPieza.classList.toggle('cerrada', ap.enCircuito && ap.ajuste >= SIM.pv('apl.maxima') * 0.7);
+    }
     val('agss', 'evacuando');
 
     /* --- bobinas de los flujometros --- */

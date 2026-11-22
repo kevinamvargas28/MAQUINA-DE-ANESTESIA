@@ -540,6 +540,9 @@ SIM.maquinaVista = (function () {
       var yBajo = 246, yAlto = 182;
       e.setAttribute('cy', (yBajo - (yBajo - yAlto) * Math.min(1, lpm / 10)).toFixed(1));
     }
+    var fl = q('#vmFlush');
+    if (fl) fl.classList.toggle('activo', !!est.circuito.flushActivo);
+
     bobina('#vmBobO2', calc.gasFresco.o2);
     bobina('#vmBobAire', calc.gasFresco.aire);
     bobina('#vmBobN2O', calc.gasFresco.n2o);

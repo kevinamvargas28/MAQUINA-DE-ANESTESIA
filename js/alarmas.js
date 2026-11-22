@@ -128,6 +128,21 @@ SIM.alarmas = (function () {
         fuente: ['ventilacion.apneaAltaSeg']
       },
       {
+        id: 'presion_alta',
+        texto: 'Presion alta en la via aerea',
+        prioridad: 'alta',
+        retardoSeg: 2,
+        condicion: function (c, e, p) {
+          return c.ventilacion.ppico > SIM.pv('ventilacion.presionAltaAlarma', p);
+        },
+        porque: 'La presion pico pasa del limite. Puede ser una obstruccion, pero en ventilacion manual la ' +
+                'causa mas frecuente y mas facil de pasar por alto es la valvula APL cerrada: el gas entra ' +
+                'y no tiene por donde salir. Pulsar la purga de O2 con la APL cerrada hace lo mismo en ' +
+                'segundos. Una presion asi distiende el pulmon y puede romperlo.',
+        fuente: ['Limite de presion de fabrica 30 cmH2O (M3 F-4 [272])',
+                 'Umbral de la alarma: supuesto de diseno [P]']
+      },
+      {
         id: 'presion_sostenida',
         texto: 'Presion sostenida en la via aerea',
         prioridad: 'alta',

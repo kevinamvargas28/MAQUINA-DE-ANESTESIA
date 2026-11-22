@@ -82,7 +82,45 @@ SIM.PERFIL_BASE = {
     apneaAltaSeg:    { valor: 120, unidad: 's', ev: 'M', cita: 'M3 D-2 [252] (Volume Apnea > 2 min, alta); M4 7-6 [136]' },
     fugaVTeUmbral:   { valor: 50,  unidad: '% de VTi', ev: 'M', cita: 'M4 7-7 [137]: VTesp < mitad de VTinsp' },
     fugaVTeSeg:      { valor: 30,  unidad: 's', ev: 'M', cita: 'M4 7-7 [137]: al menos 30 s' },
-    prioridadFugaCircuito: { valor: 'media', ev: 'M', cita: 'M4 7-7 [137]; M3 D-6 [256] (Patient Circuit Leak, media)' }
+    prioridadFugaCircuito: { valor: 'media', ev: 'M', cita: 'M4 7-7 [137]; M3 D-6 [256] (Patient Circuit Leak, media)' },
+    presionAltaAlarma: { valor: 40, unidad: 'cmH2O', ev: 'P', cita: 'Supuesto de diseno, por encima del limite de presion de fabrica de 30 cmH2O (M3 F-4 [272]). Las fuentes citadas no fijan el umbral de la alarma de presion alta.' }
+  },
+
+  /* Valvula APL (limitadora de presion ajustable) y purga de O2.
+     Los dos son mandos manuales: ni la APL ni el flush tienen sensor
+     propio, asi que la maquina no sabe en que posicion estan. Lo unico
+     que ve el monitor es la consecuencia. */
+  apl: {
+    minima:      { valor: 1,  unidad: 'cmH2O', ev: 'I', cita: 'Posicion de apertura total. Las APL graduadas van de ~1 cmH2O (abierta) a ~70-75 (cerrada); las fuentes citadas describen la valvula y su funcion pero no publican la escala.' },
+    maxima:      { valor: 70, unidad: 'cmH2O', ev: 'I', cita: 'Posicion de cierre. Misma observacion que el minimo.' },
+    nominal:     { valor: 20, unidad: 'cmH2O', ev: 'P', cita: 'Supuesto de diseno: posicion habitual de trabajo en ventilacion manual.' },
+    umbralSello: { valor: 12, unidad: 'cmH2O', ev: 'P', cita: 'Supuesto de diseno: por debajo de este ajuste el gas prefiere salir por la APL antes que entrar al paciente, y el volumen entregado cae de forma progresiva hasta cero en la apertura total.' },
+    cierreFuga:  { valor: 30, unidad: 'cmH2O', ev: 'I', cita: 'La prueba de fuga del circuito exige cerrar la APL para poder presurizar a 30 cmH2O (M2 p.88 [96]; M12 p.1-2 describen la prueba a esa presion, que no se alcanza con la APL abierta).' }
+  },
+
+  /* Agentes anestesicos halogenados.
+     El color es el codigo internacional de identificacion por agente,
+     el mismo de las botellas y de los vaporizadores. La CAM y la presion
+     de vapor son constantes de farmacologia y de fisicoquimica [I]: no
+     salen de los manuales M1-M12, que describen la maquina y no los
+     farmacos. Se usan para dos cosas: pintar cada agente de su color y
+     traducir el ajuste del dial a fraccion de CAM, que es lo que de
+     verdad dice si el paciente esta profundo o superficial. */
+  agentes: {
+    sevoflurano: { color: '#ffd166', cam: 2.0,  pv20: 157, dialMax: 8,  calentado: false },
+    isoflurano:  { color: '#b39ddb', cam: 1.15, pv20: 240, dialMax: 5,  calentado: false },
+    desflurano:  { color: '#6cb6ff', cam: 6.0,  pv20: 669, dialMax: 18, calentado: true },
+    halotano:    { color: '#ff6b6b', cam: 0.75, pv20: 243, dialMax: 5,  calentado: false },
+    enflurano:   { color: '#ff9f45', cam: 1.7,  pv20: 172, dialMax: 5,  calentado: false }
+  },
+
+  flush: {
+    caudal:      { valor: 50, unidad: 'L/min', ev: 'I', cita: 'La purga de O2 entrega un caudal alto directo a la salida comun, del orden de 35-75 L/min segun la literatura tecnica; las fuentes citadas la mencionan como maniobra (M4 7-12 [142]) sin dar el caudal.' },
+    agente:      { valor: 0,  unidad: 'vol.%', ev: 'I', cita: 'La purga toma el O2 aguas arriba del vaporizador, asi que no lleva agente: de ahi el riesgo de dilucion y despertar intraoperatorio.' }
+  },
+
+  vaporizadorAgente: {
+    factorIncompatible: { valor: 3.2, unidad: 'x lo fijado', ev: 'P', cita: 'Supuesto de diseno: cuanto entrega de mas un vaporizador de derivacion variable calibrado para un agente poco volatil cuando se llena con uno muy volatil. El orden de magnitud sale de la relacion de presiones de vapor (669 frente a 157 mmHg a 20 C), pero ninguna fuente citada lo cuantifica, porque en la practica el llenado codificado lo impide.' }
   },
 
   /* --- Pruebas ----------------------------------------------------- */

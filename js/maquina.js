@@ -36,6 +36,7 @@ SIM.maquina = (function () {
 
       vaporizador: {
         agente: 'sevoflurano',
+        calentado: false,        // el vaporizador de este simulador es de derivacion variable
         dial: 2.0,               // vol.%
         dialNominal: 2.0,        // valor de partida, para saber si el usuario lo movio
         nivelLiquidoPct: 78,
@@ -58,7 +59,8 @@ SIM.maquina = (function () {
 
       circuito: {
         modo: 'mecanica',        // 'mecanica' | 'manual'
-        aplCmH2O: 20,
+        aplCmH2O: 20,            // ajuste de la valvula APL
+        flushActivo: false,      // purga de O2 pulsada
         fugaQ30: 0,              // mL/min a 30 cmH2O (0 = estanco)
         desconectado: false,
         absorbedorAvance: 0.05,  // 0 nuevo, 1 agotado al criterio de cambio
@@ -166,6 +168,13 @@ SIM.maquina = (function () {
       }
     });
 
+    /* ---------- 1c. Purga de O2 (flush) ---------------------------
+       Toma oxigeno aguas arriba de los flujometros y del vaporizador y
+       lo manda directo a la salida comun. Por eso hace tres cosas a la
+       vez: mete mucho volumen, sube la FiO2 y diluye el agente, que es
+       el riesgo que casi nadie tiene presente. */
+    var flushLpm = est.circuito.flushActivo ? SIM.pv('flush.caudal', p) : 0;
+
     /* ---------- 2. Vaporizador ------------------------------------ */
     var vap = est.vaporizador;
     var dialAbierto = vap.instalado && vap.dial > 0;
@@ -202,6 +211,25 @@ SIM.maquina = (function () {
       ? M.salidaVaporizador(vap.dial, fraccO2, fraccN2O) * fraccionQueLlega
       : 0;
 
+    /* El agente cargado. Un vaporizador de derivacion variable esta
+       calibrado para un agente concreto: con otro mucho mas volatil
+       entrega muy por encima de lo fijado. En la practica el sistema de
+       llenado codificado lo impide, y por eso aqui se puede provocar
+       pero se avisa. */
+    var tablaAg = SIM.pv('agentes', p) || {};
+    var infoAg = tablaAg[vap.agente] || tablaAg.sevoflurano;
+    var agenteIncompatible = !!(infoAg && infoAg.calentado && !vap.calentado);
+    if (agenteIncompatible) agentePct *= SIM.pv('vaporizadorAgente.factorIncompatible', p);
+
+    /* El flush se suma al gas que llega al circuito, pero sin agente y
+       como oxigeno puro: diluye las dos cosas. */
+    var fgfTotal = fgf + flushLpm;
+    if (flushLpm > 0 && fgfTotal > 0) {
+      agentePct = agentePct * (fgf / fgfTotal);
+      fio2 = (fio2 * fgf + 1.0 * flushLpm) / fgfTotal;   /* fraccion, no % */
+      fraccN2O = fraccN2O * (fgf / fgfTotal);
+    }
+
     /* ---------- 3. Ventilador y mecanica -------------------------- */
     var v = est.ventilador;
     var fi = fraccionInspiratoria(v.relacionIE);
@@ -235,11 +263,28 @@ SIM.maquina = (function () {
        fresco bajo [M] M2 p.169 [177], y por eso subir el gas fresco lo
        compensa de forma temporal [M] M7 4.1.1 (p.54-55).
        La capacidad del fuelle y la constante de llenado son [P]. */
-    var q30 = est.circuito.desconectado ? 40000 : est.circuito.fugaQ30 + fugaColector;
+    /* ----- Valvula APL -------------------------------------------
+       Solo esta en el circuito en ventilacion manual: el selector de
+       bolsa/ventilador la saca del paso cuando se ventila con el
+       fuelle. Abierta, el gas fresco se va a la evacuacion en lugar de
+       llenar la bolsa, asi que se comporta como una fuga grande; y el
+       volumen que llega al paciente cae, porque al apretar la bolsa el
+       gas prefiere el camino libre. La escala y el umbral son [I]/[P],
+       declarados en SUPUESTOS.md. */
+    var aplEnCircuito = est.circuito.modo === 'manual';
+    var aplMin = SIM.pv('apl.minima', p);
+    var umbralSello = SIM.pv('apl.umbralSello', p);
+    var aplSello = aplEnCircuito
+      ? M.limitar((est.circuito.aplCmH2O - aplMin) / Math.max(0.1, umbralSello - aplMin), 0, 1)
+      : 1;
+    var fugaApl = aplEnCircuito ? (1 - aplSello) * 25000 : 0;   // mL/min a 30 cmH2O [P]
+
+    var q30 = est.circuito.desconectado ? 40000
+            : est.circuito.fugaQ30 + fugaColector + fugaApl;
     var pMediaPrev = est.circuito._pMedia || (v.peep + 2);
     var qFuga = M.flujoFuga(q30, pMediaPrev);                   // mL/min
     var consumoPaciente = SIM.pv('paciente.vo2', p) * SIM.pv('paciente.peso', p);  // mL/min
-    var balance = fgf * 1000 - qFuga - (hayVentilacion ? consumoPaciente : 0);
+    var balance = (fgf + flushLpm) * 1000 - qFuga - (hayVentilacion ? consumoPaciente : 0);
 
     if (est.circuito.llenado === undefined) est.circuito.llenado = 1;
     if (balance >= 0) {
@@ -252,7 +297,9 @@ SIM.maquina = (function () {
     var compliancia = 25;                                       // [P] mL/cmH2O
     /* vtAjustado es lo que el ventilador intenta entregar; vtEntregado es lo
        que el fuelle alcanza a dar con el gas que tiene el circuito. */
-    var vtAjustado = hayVentilacion ? vtObjetivo : 0;
+    /* Con la APL abierta, apretar la bolsa empuja el gas hacia la
+       evacuacion y no hacia el paciente. */
+    var vtAjustado = hayVentilacion ? vtObjetivo * (ventilaManual ? aplSello : 1) : 0;
     var vtEntregado = vtAjustado * est.circuito.llenado;
     var perdidaPorResp = qFuga / Math.max(1, v.frecuencia);
     var vte = Math.max(0, vtEntregado - perdidaPorResp);
@@ -260,21 +307,53 @@ SIM.maquina = (function () {
        que sale del fuelle: el gas que escapa no presuriza el circuito [P].
        En manual, la valvula APL limita la presion. */
     var ppico = hayVentilacion ? v.peep + vte / compliancia : v.peep;
-    if (ventilaManual) ppico = Math.min(ppico, est.circuito.aplCmH2O);
+
+    /* En manual la APL pone el techo de presion: lo que sobra se va a
+       la evacuacion. Cerrada del todo no hay techo, y si ademas entra
+       gas fresco o se pulsa la purga, la presion se acumula sin via de
+       escape. Eso es el riesgo de barotrauma. */
+    if (aplEnCircuito) {
+      var techoApl = est.circuito.aplCmH2O;
+      ppico = Math.min(ppico, techoApl);
+      var aplCasiCerrada = techoApl >= SIM.pv('apl.maxima', p) * 0.7;
+      if (aplCasiCerrada) {
+        var entrada = (fgf + flushLpm) * 1000;        // mL/min que no tienen salida
+        est.circuito._acumulada = M.limitar(
+          (est.circuito._acumulada || 0) + (entrada / 60) * dtSeg / 45, 0, techoApl);
+        ppico = Math.min(techoApl, ppico + est.circuito._acumulada);
+      } else {
+        est.circuito._acumulada = Math.max(0, (est.circuito._acumulada || 0) - 12 * dtSeg);
+      }
+    } else {
+      est.circuito._acumulada = 0;
+    }
+
+    /* La purga tambien presuriza de golpe mientras se mantiene pulsada:
+       es el mecanismo del barotrauma por flush. */
+    if (flushLpm > 0 && hayVentilacion) {
+      var salidaLibre = aplEnCircuito ? aplSello < 0.9 : true;
+      ppico += salidaLibre ? 3 : 18;                  // [P]
+    }
 
     /* Gas motriz insuficiente: el fuelle no se mueve [M] M3 B-8 [230] */
     var gasMotrizOk = v.gasMotrizKPa >= SIM.pv('suministro.gasMotrizMin', p);
     if (!gasMotrizOk && ventilaMecanica) { vtEntregado = 0; vte = 0; ppico = v.peep; est.circuito.llenado = 0.25; }
 
-    est.circuito._pMedia = v.peep + Math.max(0, ppico - v.peep) * 0.4;   // [P] I:E 1:2
+    /* Con la APL cerrada no hay por donde soltar el gas que entra, asi
+       que lo que sube no es solo el pico: sube toda la linea de base, y
+       eso es lo que dispara la alarma de presion sostenida. */
+    var baseExtra = aplEnCircuito ? (est.circuito._acumulada || 0) : 0;
+    var peepEfectiva = v.peep + baseExtra;
+
+    est.circuito._pMedia = peepEfectiva + Math.max(0, ppico - peepEfectiva) * 0.4;   // [P] I:E 1:2
 
     var presionViaAerea;
     if (!hayVentilacion) {
-      presionViaAerea = 0.5;
+      presionViaAerea = Math.max(0.5, baseExtra);
     } else if (enInspiracion) {
-      presionViaAerea = v.peep + (ppico - v.peep) * Math.sin(Math.min(1, avanceFase) * Math.PI * 0.85);
+      presionViaAerea = peepEfectiva + Math.max(0, ppico - peepEfectiva) * Math.sin(Math.min(1, avanceFase) * Math.PI * 0.85);
     } else {
-      presionViaAerea = v.peep + (ppico - v.peep) * 0.15 * Math.pow(1 - avanceFase, 2);
+      presionViaAerea = peepEfectiva + Math.max(0, ppico - peepEfectiva) * 0.15 * Math.pow(1 - avanceFase, 2);
     }
     presionViaAerea = Math.max(0, presionViaAerea);
 
@@ -404,9 +483,22 @@ SIM.maquina = (function () {
       tempC: calReacciona ? SIM.pv('absorbedor.tempCanisterReaccion', p)
                           : SIM.pv('absorbedor.tempCanisterInerte', p)
     };
-    out.gasFresco = { o2: fO2, aire: fAire, n2o: fN2O, fgf: fgf, fio2: fio2, fgfFijado: fgfFijado };
+    out.gasFresco = { o2: fO2, aire: fAire, n2o: fN2O, fgf: fgf, fio2: fio2, fgfFijado: fgfFijado,
+                      flush: flushLpm, fgfTotal: fgf + flushLpm };
+    out.apl = {
+      ajuste: est.circuito.aplCmH2O,
+      enCircuito: aplEnCircuito,
+      sello: aplSello,
+      fuga: fugaApl,
+      acumulada: est.circuito._acumulada || 0
+    };
     out.vaporizadorSalida = agentePct;
     out.vaporizador = {
+      agente: vap.agente,
+      color: infoAg ? infoAg.color : '#ff9f45',
+      cam: infoAg ? infoAg.cam : 2.0,
+      camEntregada: infoAg && infoAg.cam > 0 ? agentePct / infoAg.cam : 0,
+      incompatible: agenteIncompatible,
       dial: vap.dial, salida: agentePct, nivelPct: vap.nivelLiquidoPct,
       instalado: vap.instalado, bloqueado: vap.bloqueado, sinLiquido: sinLiquido,
       fugaColector: fugaColector, caidaFgf: caidaFgf,

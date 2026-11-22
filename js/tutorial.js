@@ -84,7 +84,7 @@ SIM.tutorial = (function () {
     ],
 
     /* ===== Escenario 1: incluye el aprendizaje de la interfaz ===== */
-    fuga: [
+    'fuga:sello': [
       { texto: 'Bienvenido al entrenamiento. Vas a diagnosticar una falla real de una maquina de anestesia, ' +
                'paso a paso. Yo te voy diciendo que hacer y por que. Cuando termines, podras repetirlo en ' +
                'practica libre, sin ayudas.' },
@@ -172,8 +172,88 @@ SIM.tutorial = (function () {
         pista: 'Vuelve a hacer la prueba de fugas.' },
 
       { texto: 'Eso es todo. El orden que acabas de seguir sirve para cualquier falla: proteger, leer la alarma, ' +
-               'contrastar con otras variables, descartar lo simple antes de lo costoso, corregir y verificar. ' +
-               'Ahora prueba el mismo escenario en practica libre, sin guia.',
+               'contrastar con otras variables, descartar lo simple antes de lo costoso, corregir y verificar.' },
+
+      { texto: 'Dos mandos que has tenido delante y conviene que conozcas antes de irte. La purga de O2, el ' +
+               'boton verde: entrega unos 50 L/min directos al circuito y lo rellena en segundos, que es lo ' +
+               'que el manual indica cuando la concertina no llega al tope. Pero ese oxigeno entra aguas ' +
+               'arriba del vaporizador, asi que no lleva agente y diluye el que habia. Pruebalo y mira como ' +
+               'cae la concentracion de agente mientras lo mantienes pulsado.',
+        resalta: '#btnFlush' },
+
+      { texto: 'Y la valvula APL, que es el techo de presion del circuito cuando ventilas a mano. Ahora mismo ' +
+               'esta fuera del circuito, porque en ventilacion mecanica el selector la deja sin paso. Pero en ' +
+               'manual decide todo, y es la protagonista de la otra variante de este escenario: la misma ' +
+               'imagen de fuga, sin que haya ninguna fuga. Al entrar se sortea una de las dos.',
+        resalta: '#selVariante',
+        fin: true }
+    ],
+
+    /* ----------------------------------------------------------------- */
+    /* Variante 2: no hay fuga, la APL quedo abierta                      */
+    /* ----------------------------------------------------------------- */
+    'fuga:apl': [
+      { texto: 'Te toco la variante que ensena a desconfiar del diagnostico facil. Estas ventilando a mano ' +
+               'durante la induccion, la bolsa no se llena y al apretar el paciente casi no recibe volumen. ' +
+               'Parece una fuga de libro.' },
+
+      { texto: 'Mira los numeros antes de creertelo. La presion pico no pasa de unos pocos cmH2O y el volumen ' +
+               'entregado es practicamente cero. Hasta aqui, identico a una fuga grande.',
+        resalta: '#variables' },
+
+      { texto: 'Contrasta inspirado contra espirado, que es el primer paso de siempre.',
+        resalta: '[data-accion="comparar_volumenes"]',
+        espera: 'accion:comparar_volumenes',
+        pista: 'Pulsa "Comparar volumen inspirado y espirado".' },
+
+      { texto: 'Ahora para un segundo y piensa en algo que el circuito tiene y que no es una averia: una ' +
+               'valvula cuyo trabajo es, literalmente, dejar salir gas. La APL manda a la evacuacion todo lo ' +
+               'que pase de un cierto valor de presion, y ese valor lo pones tu con el mando. Si esta abierta ' +
+               'del todo, el valor es casi cero, asi que se va todo.',
+        resalta: '#ctrlApl' },
+
+      { texto: 'Compruebalo antes de salir a buscar agujeros por los tramos.',
+        resalta: '[data-accion="revisar_apl"]',
+        espera: 'accion:revisar_apl',
+        pista: 'Pulsa "Mirar en que posicion esta la valvula APL".' },
+
+      { texto: 'Abierta del todo. Y con eso se explica todo lo que estabas viendo sin que haya nada roto: el ' +
+               'gas fresco se va a la evacuacion en vez de llenar la bolsa, y cuando aprietas, el gas toma el ' +
+               'camino libre en lugar de los pulmones. La maquina esta sana y haciendo lo que le pediste.' },
+
+      { texto: 'Fijate en un detalle que vale para el resto de tu vida profesional: la APL no tiene sensor. ' +
+               'La maquina no sabe en que posicion esta y por eso no hay ninguna alarma que diga "APL ' +
+               'abierta". Solo ves las consecuencias, y las consecuencias son identicas a las de una fuga. ' +
+               'Los mandos sin sensor son los que mas engañan.',
+        resalta: '#bandaAlarmas' },
+
+      { texto: 'Corrigela: llevala a una posicion de trabajo.',
+        resalta: '[data-accion="cerrar_apl"]',
+        espera: 'accion:cerrar_apl',
+        pista: 'Pulsa "Llevar la APL a una posicion de trabajo", o mueve el mando a unos 20 cmH2O.' },
+
+      { texto: 'La bolsa se llena y la presion sube al apretar. Prueba ahora a mover el mando tu mismo de ' +
+               'extremo a extremo y mira como responde la presion: es la mejor forma de entender que no es ' +
+               'un interruptor de abierto y cerrado, sino un techo graduable.',
+        resalta: '#ctrlApl',
+        espera: 'control:apl',
+        pista: 'Mueve el mando de la valvula APL.' },
+
+      { texto: 'Y el otro extremo tambien hace dano. Cerrada del todo no hay techo: el gas fresco entra y no ' +
+               'tiene por donde salir, la presion se acumula respiracion tras respiracion y acabas con una ' +
+               'alarma de presion alta y riesgo de barotrauma. Si quieres verlo, deja la APL arriba del todo ' +
+               'unos segundos y observa como sube la linea de base de la presion.' },
+
+      { texto: 'Hay una combinacion que conviene que conozcas porque es rapida y peligrosa: la purga de O2 ' +
+               'con la APL cerrada. Son 50 L/min entrando en un circuito sin escape. Si la pulsas ahora con ' +
+               'la APL donde esta, no pasa nada; con la APL cerrada, la presion se dispara en segundos.',
+        resalta: '#btnFlush' },
+
+      { texto: 'La frase para llevarte de esta variante: no todo lo que parece una fuga es una fuga. Antes de ' +
+               'buscar un agujero, mira los mandos, porque un mando mal puesto da exactamente la misma ' +
+               'imagen que una averia y se arregla en un segundo. La otra variante de este escenario si es ' +
+               'una fuga de verdad, y al entrar se sortea una de las dos.',
+        resalta: '#selVariante',
         fin: true }
     ],
 

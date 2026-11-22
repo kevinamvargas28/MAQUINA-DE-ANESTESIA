@@ -147,6 +147,26 @@ SIM.ui = (function () {
       fuente: 'Temperaturas concretas: supuesto de diseno [P]. El caracter exotermico de la reaccion es el ' +
               'fundamento quimico del absorbedor.'
     },
+    apl: {
+      et: 'Valvula APL', uni: 'cmH2O',
+      val: function (c) {
+        if (!c.apl.enCircuito) return 'fuera del circuito';
+        var a = Math.round(c.apl.ajuste);
+        var et = c.apl.sello <= 0.05 ? ' (abierta)'
+               : (c.apl.ajuste >= SIM.pv('apl.maxima', S.perfil) * 0.7 ? ' (cerrada)' : '');
+        return a + et;
+      },
+      estado: function (c) {
+        if (!c.apl.enCircuito) return 'neutro';
+        if (c.apl.sello < 0.5) return 'mal';
+        return c.apl.ajuste >= SIM.pv('apl.maxima', S.perfil) * 0.7 ? 'aviso' : 'ok';
+      },
+      porque: 'El techo de presion del circuito en ventilacion manual. Lo que pasa de ese valor se va a la ' +
+              'evacuacion. Abierta del todo no se puede presurizar el circuito; cerrada del todo no hay por ' +
+              'donde soltar lo que entra. Es un mando sin sensor: la maquina no sabe donde esta.',
+      fuente: 'La prueba de fuga a 30 cmH2O exige cerrarla (M2 p.88 [96]; M12 p.1-2). La escala concreta es ' +
+              'una inferencia [I]: las APL graduadas van de ~1 a ~70 cmH2O.'
+    },
     mv: {
       et: 'Volumen minuto', uni: 'L/min',
       val: function (c) { return n1(c.ventilacion.mv); },
@@ -686,7 +706,12 @@ SIM.ui = (function () {
         '<input id="cN2O" type="range" min="0" max="10" step="0.1" value="0"></div>' +
       '<div class="ctrl"><label for="cDial">Vaporizador <b id="lDial">2,0</b> %</label>' +
         '<input id="cDial" type="range" min="0" max="8" step="0.1" value="2"></div>' +
+      '<div class="ctrl" id="ctrlApl"><label for="cApl">Valvula APL <b id="lApl">20</b> cmH2O ' +
+          '<span class="ctrl-nota" id="notaApl"></span></label>' +
+        '<input id="cApl" type="range" min="' + SIM.pv('apl.minima') + '" max="' + SIM.pv('apl.maxima') +
+          '" step="1" value="' + SIM.pv('apl.nominal') + '"></div>' +
       '<div class="ctrl-fila">' +
+        '<button class="btn-flush" id="btnFlush" title="Mantener pulsado">Purga de O2</button>' +
         '<button class="btn-sec peq" id="btnModo">Pasar a manual</button>' +
         '<button class="btn-sec peq" id="btnCilO2">Abrir cilindro O2</button>' +
         '<button class="btn-capa3" data-fuente="rangos:flujometros">Rangos de referencia</button>' +
@@ -706,6 +731,42 @@ SIM.ui = (function () {
     liga('cAire', 'lAire', 'control:aire', function (v) { est.flujometros.aire = v; });
     liga('cN2O', 'lN2O', 'control:n2o', function (v) { est.flujometros.n2o = v; });
     liga('cDial', 'lDial', 'control:dial', function (v) { est.vaporizador.dial = v; });
+    liga('cApl', 'lApl', 'control:apl', function (v) {
+      est.circuito.aplCmH2O = v;
+      notaApl();
+    });
+
+    /* La etiqueta del mando dice en que extremo esta, porque "20" no
+       significa nada hasta que sabes que 1 es abierta y 70 cerrada. */
+    function notaApl() {
+      var na = $('#notaApl', S.refs.controles);
+      if (!na) return;
+      if (est.circuito.modo !== 'manual') {
+        na.textContent = '— fuera del circuito en ventilacion mecanica';
+      } else if (est.circuito.aplCmH2O <= SIM.pv('apl.umbralSello', S.perfil)) {
+        na.textContent = '— abierta, el gas se va a la evacuacion';
+      } else if (est.circuito.aplCmH2O >= SIM.pv('apl.maxima', S.perfil) * 0.7) {
+        na.textContent = '— cerrada, sin via de escape';
+      } else {
+        na.textContent = '';
+      }
+    }
+    notaApl();
+
+    /* La purga es un pulsador: entrega mientras se mantiene apretado, y
+       se suelta al levantar el dedo o al sacar el raton del boton. */
+    var bf = $('#btnFlush', S.refs.controles);
+    function flush(on) {
+      if (est.circuito.flushActivo === on) return;
+      est.circuito.flushActivo = on;
+      bf.classList.toggle('activo', on);
+      if (on) { anotar('Purga de O2 pulsada', 'neutro'); avisarTutorial('control:flush'); }
+    }
+    bf.addEventListener('mousedown', function () { flush(true); });
+    bf.addEventListener('mouseup', function () { flush(false); });
+    bf.addEventListener('mouseleave', function () { flush(false); });
+    bf.addEventListener('touchstart', function (e) { e.preventDefault(); flush(true); });
+    bf.addEventListener('touchend', function (e) { e.preventDefault(); flush(false); });
 
     $('#btnModo', S.refs.controles).addEventListener('click', function () {
       est.circuito.modo = est.circuito.modo === 'manual' ? 'mecanica' : 'manual';
@@ -730,6 +791,18 @@ SIM.ui = (function () {
     });
     var bm = $('#btnModo', c);
     if (bm) bm.textContent = est.circuito.modo === 'manual' ? 'Volver a mecanica' : 'Pasar a manual';
+
+    /* La APL solo esta en el circuito en ventilacion manual. En
+       mecanica el selector la deja fuera del paso, y conviene que el
+       mando lo diga en lugar de limitarse a no hacer nada. */
+    var manual = est.circuito.modo === 'manual';
+    var ia = $('#cApl', c), la = $('#lApl', c), na = $('#notaApl', c), ca = $('#ctrlApl', c);
+    if (ia && Math.abs(parseFloat(ia.value) - est.circuito.aplCmH2O) > 0.5) ia.value = est.circuito.aplCmH2O;
+    if (la) la.textContent = n0(est.circuito.aplCmH2O);
+    if (na) na.textContent = !manual ? '— fuera del circuito en ventilacion mecanica'
+      : (est.circuito.aplCmH2O <= SIM.pv('apl.umbralSello', S.perfil) ? '— abierta, el gas se va a la evacuacion'
+      : (est.circuito.aplCmH2O >= SIM.pv('apl.maxima', S.perfil) * 0.7 ? '— cerrada, sin via de escape' : ''));
+    if (ca) ca.classList.toggle('inactivo', !manual);
     var bc = $('#btnCilO2', c);
     if (bc) bc.textContent = est.suministro.cilindroAbierto.o2 ? 'Cerrar cilindro O2' : 'Abrir cilindro O2';
   }
@@ -1003,7 +1076,7 @@ SIM.ui = (function () {
       '</header>' +
       '<div class="pane-cuerpo">' +
         '<div class="gas-lienzo" id="gasLienzo">' + SIM.esquema.markup() + '</div>' +
-        '<aside class="gas-panel" id="gasPanel"></aside>' +
+        '<aside class="gas-panel"><div id="gasPanel"></div><div id="gasBanco"></div></aside>' +
       '</div>';
     document.body.appendChild(pane);
 
@@ -1011,6 +1084,7 @@ SIM.ui = (function () {
     S._recorrido = { svg: svg, particulas: SIM.esquema.crearParticulas(svg), sel: null };
     SIM.esquema.preparar(svg, elegirBloqueGas, pasarBloqueGas);
     panelGasPorDefecto();
+    montarBancoGases();
 
     pane.querySelector('#cerrarGases').addEventListener('click', cerrarRecorrido);
     pane.querySelector('#btnTourGases').addEventListener('click', function () {
@@ -1030,6 +1104,234 @@ SIM.ui = (function () {
       SIM.tutorial.terminar();
     }
     S._recorrido = null;
+  }
+
+
+  /* ------------------------------------------------------------------ */
+  /* Banco de pruebas del circuito de gases                              */
+  /* Los mismos mandos de la maquina, pero aqui el objetivo no es        */
+  /* resolver una falla sino ver que le pasa al circuito cuando se toca  */
+  /* cada cosa. Cada cambio escribe en el recuadro de abajo que puede    */
+  /* pasar, que es la parte que convierte el juego en aprendizaje.       */
+  /* ------------------------------------------------------------------ */
+  function montarBancoGases() {
+    var cont = document.getElementById('gasBanco');
+    if (!cont || !S.estado) return;
+    var est = S.estado, ags = SIM.pv('agentes', S.perfil);
+
+    cont.innerHTML =
+      '<div class="bloque-capa1 banco">' +
+        '<div class="cab-bloque"><h3>Banco de pruebas</h3>' +
+          '<button class="btn-sec peq" id="bgReset">Volver al estado normal</button></div>' +
+        '<p class="banco-intro">Mueve lo que quieras y observa el circuito. Nada de lo que hagas aqui ' +
+          'cuenta como acierto o error: es para ver como responde.</p>' +
+
+        '<div class="ctrl"><label for="bgO2">O2 <b id="bgLO2">1,0</b> L/min</label>' +
+          '<input id="bgO2" type="range" min="0" max="10" step="0.1"></div>' +
+        '<div class="ctrl"><label for="bgAire">Aire <b id="bgLAire">1,0</b> L/min</label>' +
+          '<input id="bgAire" type="range" min="0" max="10" step="0.1"></div>' +
+        '<div class="ctrl"><label for="bgN2O">N2O <b id="bgLN2O">0,0</b> L/min</label>' +
+          '<input id="bgN2O" type="range" min="0" max="10" step="0.1"></div>' +
+
+        '<div class="ctrl"><label for="bgAgente">Agente anestesico</label>' +
+          '<select id="bgAgente" class="bg-select">' +
+            Object.keys(ags).map(function (k) {
+              return '<option value="' + k + '">' + k.charAt(0).toUpperCase() + k.slice(1) + '</option>';
+            }).join('') +
+          '</select></div>' +
+        '<div class="ctrl"><label for="bgDial">Dial del vaporizador <b id="bgLDial">2,0</b> % ' +
+            '<span class="ctrl-nota" id="bgCam"></span></label>' +
+          '<input id="bgDial" type="range" min="0" max="8" step="0.1"></div>' +
+
+        '<div class="ctrl"><label for="bgApl">Valvula APL <b id="bgLApl">20</b> cmH2O ' +
+            '<span class="ctrl-nota" id="bgNotaApl"></span></label>' +
+          '<input id="bgApl" type="range" min="' + SIM.pv('apl.minima') + '" max="' + SIM.pv('apl.maxima') + '" step="1"></div>' +
+
+        '<div class="ctrl-fila">' +
+          '<button class="btn-flush" id="bgFlush">Purga de O2</button>' +
+          '<button class="btn-sec peq" id="bgModo">Pasar a manual</button>' +
+          '<button class="btn-sec peq" id="bgCal">Agotar la cal</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="bloque-capa1 banco-aviso" id="bgAviso">' +
+        '<div class="cab-bloque"><h3>Que puede pasar</h3></div>' +
+        '<p class="sintoma" id="bgTexto">Mueve cualquier mando y aqui aparece que consecuencia tiene.</p>' +
+      '</div>';
+
+    function decir(txt, clase) {
+      var t = document.getElementById('bgTexto'), c = document.getElementById('bgAviso');
+      if (t) t.textContent = txt;
+      if (c) c.className = 'bloque-capa1 banco-aviso ' + (clase || '');
+    }
+    function liga(id, lbl, aplica, explica) {
+      var inp = document.getElementById(id);
+      inp.addEventListener('input', function () {
+        var v = parseFloat(inp.value);
+        var l = document.getElementById(lbl);
+        if (l) l.textContent = id === 'bgApl' ? n0(v) : n1(v);
+        aplica(v);
+        decir(explica(v), explica.clase || '');
+        sincronizarBanco();
+      });
+    }
+
+    liga('bgO2', 'bgLO2', function (v) { est.flujometros.o2 = v; }, function (v) {
+      var tot = est.flujometros.o2 + est.flujometros.aire + est.flujometros.n2o;
+      if (v === 0 && est.flujometros.n2o > 0)
+        return 'Sin oxigeno y con N2O abierto la proteccion corta el N2O: la maquina no deja entregar una ' +
+               'mezcla hipoxica. Mira como se detienen las bolitas del ramal de N2O.';
+      if (v === 0)
+        return 'Flujometro de O2 cerrado. Si queda aire abierto el paciente sigue recibiendo su 21 %, pero ' +
+               'has dejado de aportar oxigeno: en un circuito cerrado el paciente consume unos 250 mL por ' +
+               'minuto y la FiO2 ira cayendo. Con N2O abierto, la proteccion lo cortaria.';
+      if (tot < 1)
+        return 'Con menos de 1 L/min en total estas en flujo muy bajo: se reinhala casi todo, el absorbedor ' +
+               'trabaja al maximo y cualquier fuga se nota mucho mas. Si la cal esta agotada, el CO2 ' +
+               'inspirado sube enseguida.';
+      return 'Mas oxigeno sube la FiO2 y la velocidad del flujo en todo el circuito. Tambien diluye lo que ' +
+             'vuelve del paciente: con mas gas fresco se reinhala menos.';
+    });
+    liga('bgAire', 'bgLAire', function (v) { est.flujometros.aire = v; }, function () {
+      return 'El aire aporta 21 % de oxigeno, asi que subirlo baja la FiO2 de la mezcla aunque suba el ' +
+             'caudal total. Es la forma habitual de dar volumen sin dar oxigeno de mas.';
+    });
+    liga('bgN2O', 'bgLN2O', function (v) { est.flujometros.n2o = v; }, function (v) {
+      if (v > 0 && est.flujometros.o2 <= 0.3)
+        return 'Cuidado: con el O2 tan bajo esta mezcla seria hipoxica. El dispositivo de proteccion limita ' +
+               'o corta el N2O, y por eso no veras pasar todo el que pides.';
+      return 'El N2O desplaza al oxigeno en la mezcla: a mas N2O, menos FiO2. Mira el color del ramal y ' +
+             'como cambia la proporcion en el colector.';
+    });
+
+    document.getElementById('bgAgente').addEventListener('change', function () {
+      var k = this.value, a = ags[k];
+      est.vaporizador.agente = k;
+      var dial = document.getElementById('bgDial');
+      dial.max = a.dialMax;
+      if (est.vaporizador.dial > a.dialMax) { est.vaporizador.dial = a.dialMax; dial.value = a.dialMax; }
+      var comun = k === 'sevoflurano' || k === 'isoflurano';
+      decir(a.calentado
+        ? 'El desflurano hierve casi a temperatura ambiente: su presion de vapor es de 669 mmHg, mas de ' +
+          'cuatro veces la del sevoflurano. Un vaporizador de derivacion variable como el de esta maquina ' +
+          'no puede dosificarlo, y entrega muchisimo mas de lo que marca el dial. Por eso el desflurano ' +
+          'necesita un vaporizador calentado y presurizado, y por eso el sistema de llenado esta codificado ' +
+          'por agente: para que este error sea fisicamente imposible.'
+        : 'Cada agente tiene su color y su potencia. Con el dial en el mismo numero, la profundidad cambia: ' +
+          'la CAM del ' + k + ' es ' + n1(a.cam) + ' %, asi que ' + n1(est.vaporizador.dial) + ' % son ' +
+          n1(est.vaporizador.dial / a.cam) + ' CAM. El dial dice concentracion, no profundidad.' +
+          (comun ? '' : ' Este agente ya casi no se usa en quirofano.'),
+        a.calentado ? 'mal' : '');
+      sincronizarBanco();
+    });
+
+    liga('bgDial', 'bgLDial', function (v) { est.vaporizador.dial = v; }, function (v) {
+      var a = ags[est.vaporizador.agente];
+      return 'Con el dial en ' + n1(v) + ' % entregas ' + n1(v / a.cam) + ' CAM de ' +
+             est.vaporizador.agente + '. Por debajo de 0,7 CAM hay riesgo de despertar; muy por encima de ' +
+             '1,3 CAM, de hipotension. El numero del dial no significa lo mismo en dos agentes distintos.';
+    });
+
+    liga('bgApl', 'bgLApl', function (v) { est.circuito.aplCmH2O = v; }, function (v) {
+      if (est.circuito.modo !== 'manual')
+        return 'La APL solo esta en el circuito en ventilacion manual. Ahora mismo el selector la deja ' +
+               'fuera del paso, asi que moverla no cambia nada: pasa a manual para verla trabajar.';
+      if (v <= SIM.pv('apl.umbralSello', S.perfil))
+        return 'Abierta: el gas fresco se va a la evacuacion en lugar de llenar la bolsa, y al apretar, el ' +
+               'gas sale por ahi en vez de entrar al paciente. Parece una fuga enorme y no hay ninguna. ' +
+               'Asi tambien es imposible hacer la prueba de fuga del circuito.';
+      if (v >= SIM.pv('apl.maxima', S.perfil) * 0.7)
+        return 'Cerrada: no hay por donde soltar lo que entra. La presion se acumula respiracion tras ' +
+               'respiracion, sube la linea de base y acaba saltando la alarma de presion alta. Si ademas ' +
+               'pulsas la purga, el pico se dispara en segundos: es el mecanismo del barotrauma.';
+      return 'En posicion de trabajo la APL fija el techo de presion del circuito: lo que pase de ' + n0(v) +
+             ' cmH2O se va a la evacuacion. No es un interruptor, es un limite graduable.';
+    });
+
+    var bf = document.getElementById('bgFlush');
+    function flush(on) {
+      if (est.circuito.flushActivo === on) return;
+      est.circuito.flushActivo = on;
+      bf.classList.toggle('activo', on);
+      if (on) decir('Purga pulsada: unos ' + SIM.pv('flush.caudal') + ' L/min de oxigeno puro entran por el ' +
+        'ramal de arriba, que esquiva los flujometros y el vaporizador. Mira las bolitas de ese ramal. ' +
+        'Rellena el circuito en segundos y sube la FiO2, pero al no pasar por el vaporizador diluye el ' +
+        'agente casi a cero: un flush sostenido puede dejar al paciente superficial.', 'aviso');
+      sincronizarBanco();
+    }
+    bf.addEventListener('mousedown', function () { flush(true); });
+    bf.addEventListener('mouseup', function () { flush(false); });
+    bf.addEventListener('mouseleave', function () { flush(false); });
+    bf.addEventListener('touchstart', function (e) { e.preventDefault(); flush(true); });
+    bf.addEventListener('touchend', function (e) { e.preventDefault(); flush(false); });
+
+    document.getElementById('bgModo').addEventListener('click', function () {
+      est.circuito.modo = est.circuito.modo === 'manual' ? 'mecanica' : 'manual';
+      decir(est.circuito.modo === 'manual'
+        ? 'En manual el gas va a la bolsa y la valvula APL entra en el circuito: a partir de ahora el ' +
+          'techo de presion lo pones tu con ese mando. El fuelle queda en reposo.'
+        : 'En mecanica el gas va al fuelle y el selector deja la APL fuera del paso. Por eso en ventilacion ' +
+          'mecanica no importa donde este la APL, y por eso una APL mal puesta solo se descubre al pasar a ' +
+          'manual.');
+      sincronizarBanco();
+    });
+
+    document.getElementById('bgCal').addEventListener('click', function () {
+      var gastada = est.circuito.absorbedorAvance > 1;
+      est.circuito.absorbedorAvance = gastada ? 0.05 : 1.05;
+      est.circuito.colorEnganoso = false;
+      est.circuito.colorVirado = gastada ? 0.045 : 0.95;
+      decir(gastada
+        ? 'Cal nueva: vuelve a retener el CO2, el color vuelve a blanco y el CO2 inspirado cae a cero. ' +
+          'Fijate en que el canister se calienta cuando la cal trabaja, porque la reaccion desprende calor.'
+        : 'Cal agotada: el CO2 que vuelve del paciente ya no se retiene y se reinhala. Sube el CO2 ' +
+          'inspirado y con el el EtCO2. Cuanto mas bajo sea el gas fresco, peor, porque menos se diluye lo ' +
+          'que vuelve. Prueba a subir el O2 y mira como baja.', gastada ? '' : 'aviso');
+      sincronizarBanco();
+    });
+
+    document.getElementById('bgReset').addEventListener('click', function () {
+      est.flujometros.o2 = 1.0; est.flujometros.aire = 1.0; est.flujometros.n2o = 0;
+      est.vaporizador.agente = 'sevoflurano'; est.vaporizador.dial = 2.0;
+      est.circuito.aplCmH2O = SIM.pv('apl.nominal'); est.circuito.modo = 'mecanica';
+      est.circuito.flushActivo = false;
+      est.circuito.absorbedorAvance = 0.05; est.circuito.colorVirado = 0.045;
+      est.circuito.colorEnganoso = false; est.circuito.valvulaIncompetente = false;
+      decir('Todo vuelve al estado normal de trabajo.');
+      sincronizarBanco();
+    });
+
+    sincronizarBanco();
+  }
+
+  /* Deja los mandos del banco en el estado real de la maquina */
+  function sincronizarBanco() {
+    var est = S.estado, ags = SIM.pv('agentes', S.perfil);
+    if (!est || !document.getElementById('gasBanco')) return;
+    function pon(id, lbl, v, dec) {
+      var i = document.getElementById(id), l = document.getElementById(lbl);
+      if (i && Math.abs(parseFloat(i.value) - v) > 0.01) i.value = v;
+      if (l) l.textContent = dec === 0 ? n0(v) : n1(v);
+    }
+    pon('bgO2', 'bgLO2', est.flujometros.o2);
+    pon('bgAire', 'bgLAire', est.flujometros.aire);
+    pon('bgN2O', 'bgLN2O', est.flujometros.n2o);
+    pon('bgDial', 'bgLDial', est.vaporizador.dial);
+    pon('bgApl', 'bgLApl', est.circuito.aplCmH2O, 0);
+
+    var sa = document.getElementById('bgAgente');
+    if (sa && sa.value !== est.vaporizador.agente) sa.value = est.vaporizador.agente;
+    var a = ags[est.vaporizador.agente] || ags.sevoflurano;
+    var cam = document.getElementById('bgCam');
+    if (cam) cam.textContent = '— ' + n1(est.vaporizador.dial / a.cam) + ' CAM de ' + est.vaporizador.agente +
+      (a.calentado ? ', vaporizador incompatible' : '');
+    var na = document.getElementById('bgNotaApl');
+    if (na) na.textContent = est.circuito.modo !== 'manual' ? '— fuera del circuito'
+      : (est.circuito.aplCmH2O <= SIM.pv('apl.umbralSello', S.perfil) ? '— abierta'
+      : (est.circuito.aplCmH2O >= SIM.pv('apl.maxima', S.perfil) * 0.7 ? '— cerrada' : ''));
+    var bm = document.getElementById('bgModo');
+    if (bm) bm.textContent = est.circuito.modo === 'manual' ? 'Volver a mecanica' : 'Pasar a manual';
+    var bc = document.getElementById('bgCal');
+    if (bc) bc.textContent = est.circuito.absorbedorAvance > 1 ? 'Poner cal nueva' : 'Agotar la cal';
   }
 
   function panelGasPorDefecto() {
@@ -1124,7 +1426,10 @@ SIM.ui = (function () {
     abrirModal(
       '<h3 class="modal-tit">Prueba de fugas del circuito</h3>' +
       '<p class="capa2">El circuito se cierra y se presuriza a ' + SIM.pv('pruebas.presionPruebaFuga', p) +
-        ' cmH2O. Luego se mide el flujo de O2 necesario para mantener esa presion: ese flujo es la fuga.</p>' +
+        ' cmH2O. Luego se mide el flujo de O2 necesario para mantener esa presion: ese flujo es la fuga. ' +
+        'La valvula APL tiene que estar cerrada: con ella abierta el gas se va a la evacuacion y el ' +
+        'circuito no llega nunca a la presion de prueba.</p>' +
+      '<p class="prueba-aviso" id="avisoApl"></p>' +
       '<div class="prueba">' +
         '<div class="manometro-grande"><span id="pPresion">0</span><small>cmH2O</small></div>' +
         '<div class="prueba-datos">' +
@@ -1138,6 +1443,12 @@ SIM.ui = (function () {
         encodeURIComponent('M2 p.88 [96]; M3 B-5 [227]; M12 p.1-2; compliancia 1-10 mL/cmH2O en M2 p.169 [177]') +
         '">Fuente</button>'
     );
+    var av = document.getElementById('avisoApl');
+    if (av && S.estado.circuito.aplCmH2O < SIM.pv('apl.cierreFuga', p)) {
+      av.className = 'prueba-aviso mal';
+      av.textContent = 'Antes de medir: la valvula APL esta en ' +
+        Math.round(S.estado.circuito.aplCmH2O) + ' cmH2O. Para presurizar el circuito tiene que estar cerrada.';
+    }
     var b = document.getElementById('btnCorrer');
     if (b) b.addEventListener('click', correrPruebaFuga);
     if (SIM.tutorial) SIM.tutorial.reaplicarFoco();
@@ -1379,7 +1690,13 @@ SIM.ui = (function () {
     var limite = SIM.pv('pruebas.fugaAceptable', p);
     var compliancia = 4;              /* [P] dentro del rango 1-10 mL/cmH2O de M2 */
     var FLUJO_MAX = 10000;            /* [P] mL/min disponibles para la prueba */
-    var q30 = S.estado.circuito.fugaQ30;
+
+    /* La prueba exige cerrar la valvula APL: con la APL abierta el gas
+       se va a la evacuacion y el circuito no llega a los 30 cmH2O, por
+       mucho que este estanco. Es la causa numero uno de pruebas de fuga
+       fallidas que no son fugas. */
+    var aplAbierta = S.estado.circuito.aplCmH2O < SIM.pv('apl.cierreFuga', p);
+    var q30 = S.estado.circuito.fugaQ30 + (aplAbierta ? 25000 : 0);
 
     var presion = 0, aporte = 0, t = 0;
     var elP = $('#pPresion'), elF = $('#pFlujo'), elR = $('#pResultado');
@@ -1402,7 +1719,13 @@ SIM.ui = (function () {
         var aprueba = alcanza && medida <= limite;
         if (elR) {
           elR.className = 'prueba-res ' + (aprueba ? 'bien' : 'mal');
-          if (!alcanza) {
+          if (!alcanza && aplAbierta) {
+            elR.innerHTML = '<b>No se alcanza la presion de prueba, y esta vez no es el circuito.</b> La ' +
+              'valvula APL esta en ' + Math.round(S.estado.circuito.aplCmH2O) + ' cmH2O: con ella abierta el ' +
+              'gas sale a la evacuacion y el circuito nunca llega a ' + objetivo + ' cmH2O, aunque este ' +
+              'perfectamente estanco. Cierra la APL y repite la prueba. Mientras no lo hagas, el resultado ' +
+              'no significa nada.';
+          } else if (!alcanza) {
             elR.innerHTML = '<b>No se alcanza la presion de prueba.</b> El circuito no sostiene ' + objetivo +
               ' cmH2O ni con ' + (FLUJO_MAX / 1000) + ' L/min. Es una fuga gruesa: busca una desconexion o un ' +
               'sello completamente fuera de sitio antes de volver a probar.';
@@ -1414,7 +1737,8 @@ SIM.ui = (function () {
                 limite + ' mL/min. Hay que localizar el componente antes de repetirla.';
           }
         }
-        anotar('Prueba de fugas: ' + (alcanza ? medida + ' mL/min' : 'no sostiene la presion') +
+        anotar('Prueba de fugas: ' + (alcanza ? medida + ' mL/min'
+                 : (aplAbierta ? 'no sostiene la presion, la APL esta abierta' : 'no sostiene la presion')) +
                ' (' + (aprueba ? 'aprobada' : 'no aprobada') + ')', aprueba ? 'bien' : 'mal');
         if (btn) { btn.disabled = false; btn.textContent = 'Repetir la prueba'; }
         avisarTutorial('prueba:corrida');
