@@ -80,6 +80,7 @@ La información se organiza en tres capas: qué está pasando, por qué ocurre y
 - [SUPUESTOS.md](SUPUESTOS.md) — todos los supuestos de diseño y lo que hay que validar
 - [DESARROLLO.md](DESARROLLO.md) — bitácora de los ensayos: qué se construyó en cada uno, qué falló
   y por qué se corrigió
+- [PUBLICAR.md](PUBLICAR.md) — cómo publicar una versión nueva sin romper nada
 
 ## Estructura
 
