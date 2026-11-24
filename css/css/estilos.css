@@ -1,0 +1,1173 @@
+/* =====================================================================
+   estilos.css  -  Interfaz medica oscura, alta densidad, en espanol
+   ===================================================================== */
+
+:root{
+  /* Grafito neutro. Lo que delataba la plantilla no era que el gris
+     fuera frio, sino los acentos saturados; un gris calido corrige lo
+     que no estaba roto y agrega un tinte sepia que envejece la vista.
+     Este gris es casi neutro (saturacion ~4%), como las carcasas y las
+     interfaces del equipo clinico real.
+     Regla de la paleta: la interfaz no lleva color. El color aparece
+     solo cuando significa algo, y siempre con respaldo documental:
+       - alarmas: rojo / amarillo / cian, IEC 60601-1-8
+       - gases:   codigo de identificacion por gas
+       - agentes: codigo de identificacion por agente
+       - curvas:  convencion de quirofano (APSF) */
+  --fondo:#17181a;
+  --fondo-2:#1f2123;
+  --fondo-3:#272a2d;
+  --borde:#363a3e;
+  --borde-2:#494e53;
+  --texto:#e9ebec;
+  --texto-2:#a6abaf;
+  --texto-3:#8f9499;
+
+  /* Sin acento de color: lo interactivo se marca con contraste. */
+  --acento:#c8cdd1;
+  --acento-sua:rgba(200,205,209,.10);
+
+  /* Zonas de dibujo: mas profundas, para que se lean como pantallas */
+  --pantalla:#0f1011;
+
+  /* Cuerpo de la maquina */
+  --cuerpo:#e6eaed;
+  --cuerpo-2:#cfd6dc;
+  --cuerpo-3:#b4bec6;
+  --cuerpo-borde:#9aa6b0;
+  --zocalo:#2f353b;
+
+  /* Gases: codigo de identificacion. El aire tira a ambar y el N2O a
+     azul medio, para no confundirse con el amarillo y el cian de las
+     alarmas, que tienen significado propio. */
+  --o2:#35a864;
+  --aire:#d4a03a;
+  --n2o:#4a86c8;
+  --agente:#d9823c;
+  --espirado:#9281bd;
+  --mezcla:#8fa8b5;
+  --residual:#86827b;
+
+  /* Alarmas: IEC 60601-1-8. Rojo alta, amarillo media, cian baja. */
+  --alta:#d8382f;
+  --media:#f0c419;
+  --baja:#3fc3d9;
+  --bien:#35a864;
+  --mal:#d8382f;
+  --parcial:#f0c419;
+
+  /* Curvas: convencion de quirofano (APSF) */
+  --curva-co2:#e8e6e3;
+  --curva-paw:#9fb0bd;
+
+  /* Escala tipografica: seis pasos y nada entre ellos. Antes habia 23
+     tamanos distintos, que es lo que hace que una interfaz se vea
+     improvisada aunque cada pantalla por separado se vea bien. */
+  --t-micro:10px;   /* etiquetas en versalitas */
+  --t-eti:11px;     /* pies, chips, notas */
+  --t-txt:13px;     /* texto corrido */
+  --t-tit:15px;     /* sintoma, titulo de barra */
+  --t-sub:18px;     /* titulos de bloque */
+  --t-cifra:26px;   /* lectura numerica */
+
+  /* Radios: dos. El equipo clinico es cuadrado; la esquina muy
+     redondeada es de la estetica de las plantillas web. */
+  --r:3px;
+  --r-g:5px;
+}
+
+*{box-sizing:border-box;}
+html,body{height:100%;}
+#app{height:100%;min-height:0;}
+body{
+  margin:0;
+  background:var(--fondo);
+  color:var(--texto);
+  font:var(--t-txt)/1.55 system-ui,"Segoe UI",Roboto,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit;cursor:pointer;}
+code{font-family:ui-monospace,"Cascadia Code",Consolas,monospace;font-size:var(--t-eti);color:var(--acento);}
+.oculto{display:none !important;}
+
+/* ================= PANTALLA DE INICIO ================= */
+/* ---- Vinetas de escenario ---- */
+.tarjeta.con-vineta{padding-top:14px;}
+.tarj-vineta{
+  display:block;background:var(--fondo-3);border:none;border-radius:var(--r-g);
+  padding:8px 10px;margin-bottom:10px;
+}
+.vineta{display:block;width:100%;height:68px;}
+.vineta .vn-cuerpo{fill:#c9d2d9;stroke:#8e9aa4;stroke-width:1;}
+.vineta .vn-pieza{stroke:#8e9aa4;stroke-width:2;fill:none;}
+.vineta .vn-corru rect{fill:#6f7c88;}
+.vineta .vn-corru.suelta rect{fill:#8a5a5a;}
+.vineta .vn-escape{fill:var(--o2);opacity:.75;}
+.vineta .vn-alerta{stroke:var(--alta);stroke-width:2.4;stroke-linecap:round;fill:none;}
+.vineta .vn-alerta.flecha{stroke-linejoin:round;}
+.vineta .vn-vidrio{fill:rgba(190,215,230,.14);stroke:#7f8c98;stroke-width:1;}
+.vineta .vn-pliegue rect{fill:var(--espirado);opacity:.65;}
+.vineta .vn-tope{stroke:#7f8c98;stroke-width:1.2;stroke-dasharray:3 3;}
+.vineta .vn-pant{fill:#0f1418;stroke:#4a535c;stroke-width:1;}
+.vineta .vn-traza{stroke:var(--bien);stroke-width:1.8;fill:none;}
+.vineta .vn-agua{fill:rgba(120,170,200,.55);}
+.vineta .vn-dial{fill:#2a3139;stroke:var(--agente);stroke-width:1.6;}
+.vineta .vn-aguja{stroke:var(--agente);stroke-width:2;stroke-linecap:round;}
+.vineta .vn-aguja.larga{stroke:var(--alta);}
+.vineta .vn-man{fill:#e8edf1;stroke:#9aa6b0;stroke-width:1.2;}
+.vineta .vn-man-int{fill:none;stroke:#b9c3cb;stroke-width:1;}
+.vineta .vn-eje{fill:#5a646c;}
+.vineta .vn-cal{fill:rgba(154,134,196,.5);stroke:#7f6fa8;stroke-width:1;}
+.vineta .vn-grano{fill:#7a68a8;}
+.vineta .vn-txt{fill:var(--texto-3);font-size:8px;}
+.vineta .vn-txt.c{text-anchor:middle;}
+
+/* ---- Inicio: lo que se puede hacer, y la maquina al lado ----
+   Una sola pantalla que cabe en la ventana. La columna izquierda
+   desplaza su propio contenido si hace falta; la maquina de la derecha
+   se ajusta al alto disponible y nunca obliga a hacer scroll. */
+.inicio2{
+  display:grid;grid-template-columns:minmax(330px,0.9fr) minmax(300px,1.1fr);
+  gap:36px;height:100%;min-height:0;box-sizing:border-box;
+  padding:clamp(20px,3vh,44px) clamp(20px,4vw,56px);align-items:center;
+  max-width:1280px;margin:0 auto;
+}
+.inicio2-izq{display:flex;flex-direction:column;min-height:0;overflow-y:auto;}
+.inicio2-sobre{
+  margin:0 0 8px;font-size:var(--t-eti);letter-spacing:.14em;text-transform:uppercase;color:var(--texto-3);
+}
+.inicio2-tit{
+  margin:0 0 22px;font-size:clamp(28px,3.6vw,44px);font-weight:600;line-height:1.05;
+  letter-spacing:-.025em;color:var(--texto);
+}
+.modos-lista{display:flex;flex-direction:column;border-top:1px solid var(--borde);}
+.modo-fila{
+  all:unset;box-sizing:border-box;cursor:pointer;display:block;position:relative;
+  padding:16px 34px 16px 16px;border-bottom:1px solid var(--borde);
+  transition:background .15s,padding-left .15s;
+}
+.modo-fila::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:transparent;transition:background .15s;
+}
+.modo-fila:hover,.modo-fila:focus-visible{background:var(--fondo-2);padding-left:22px;}
+.modo-fila:hover::before,.modo-fila:focus-visible::before{background:var(--acento);}
+.modo-fila-cab{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
+.modo-fila-tit{font-size:var(--t-sub);font-weight:600;color:var(--texto);}
+.modo-fila-pie{font-size:var(--t-eti);letter-spacing:.08em;text-transform:uppercase;color:var(--texto-3);}
+.modo-fila-txt{display:block;margin-top:5px;font-size:var(--t-txt);color:var(--texto-2);max-width:52ch;}
+.modo-fila-flecha{
+  position:absolute;right:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;
+  fill:none;stroke:var(--texto-3);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;
+  transition:stroke .15s,transform .15s;
+}
+.modo-fila:hover .modo-fila-flecha{stroke:var(--acento);transform:translateY(-50%) translateX(3px);}
+.inicio2-izq .aviso{margin:20px 0 0;}
+.inicio2-pie{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+/* Conmutador de dos posiciones para elegir el dibujo del explorador. */
+.conm{display:inline-flex;border-radius:var(--r);overflow:hidden;background:var(--fondo-3);}
+.conm button{
+  all:unset;cursor:pointer;padding:5px 11px;font-size:var(--t-eti);color:var(--texto-2);
+  letter-spacing:.03em;transition:background .15s,color .15s;
+}
+.conm button:hover{background:#31353a;color:var(--texto);}
+.conm button.on{background:var(--borde-2);color:var(--texto);font-weight:600;}
+.conm button:focus-visible{box-shadow:inset 0 0 0 2px var(--acento-sua);}
+
+/* Piezas senalables del equipo en volumen. El realce es de luz, no de
+   contorno: un contorno sobre cada cara dibujaria la malla. */
+.maq-portada text{pointer-events:none;}
+.maq-portada .mp-pieza{cursor:pointer;}
+.maq-portada .mp-sobre{filter:brightness(1.3) saturate(1.08);}
+.maq-portada .mp-activo{filter:brightness(1.18) saturate(1.05);}
+.maq-portada .mp-fuera{opacity:.42;}
+
+/* La portada es una sola pieza: un unico fondo de extremo a extremo.
+   El equipo no va sobre un panel propio, va iluminado sobre el mismo
+   grafito, con un halo muy tenue que lo separa del fondo sin dibujar
+   un borde. Dos fondos distintos en una misma pantalla la parten. */
+.inicio2-der{
+  display:flex;align-items:center;justify-content:center;min-height:0;height:100%;
+  box-sizing:border-box;padding:clamp(6px,1.4vh,18px);
+  background:radial-gradient(64% 56% at 50% 46%,rgba(255,255,255,.055) 0%,rgba(255,255,255,0) 72%);
+}
+.inicio2-der svg{height:100%;width:100%;max-height:100%;display:block;}
+@media (max-width:900px){
+  .inicio2{grid-template-columns:1fr;grid-template-rows:auto minmax(180px,1fr);gap:18px;
+    padding:18px 16px;align-items:start;overflow-y:auto;}
+  .inicio2-izq{overflow:visible;}
+  .inicio2-der{height:auto;}
+  .inicio2-der svg{max-height:40vh;}
+}
+.inicio{max-width:1140px;margin:0 auto;padding:40px 24px 64px;}
+.inicio-cab h1{margin:0 0 6px;font-size:var(--t-cifra);letter-spacing:-.02em;}
+.inicio-cab .sub{margin:0 0 16px;color:var(--texto-2);font-size:var(--t-tit);}
+.aviso{
+  margin:0 0 32px;padding:10px 14px;border-left:3px solid var(--media);
+  background:rgba(240,196,25,.07);color:#ecdfb6;font-size:var(--t-txt);border-radius:0 var(--r) var(--r) 0;
+}
+.seccion-tit{font-size:var(--t-tit);text-transform:uppercase;letter-spacing:.09em;color:var(--texto-3);margin:0 0 14px;}
+.rejilla-tarjetas{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px;}
+.tarjeta{
+  display:flex;flex-direction:column;gap:7px;text-align:left;padding:18px;
+  background:var(--fondo-2);border:none;border-radius:var(--r-g);color:var(--texto);
+  transition:box-shadow .15s,transform .15s,background .15s;
+}
+.tarjeta:hover:not(:disabled){box-shadow:inset 0 0 0 1px var(--borde-2);transform:translateY(-1px);background:var(--fondo-3);}
+.tarjeta .num{font-size:var(--t-eti);text-transform:uppercase;letter-spacing:.1em;color:var(--texto-3);}
+.tarjeta .tit{font-size:var(--t-sub);font-weight:600;line-height:1.3;}
+.tarjeta .idea{font-size:var(--t-txt);color:var(--texto-2);min-height:38px;}
+.tarjeta .chip{
+  align-self:flex-start;margin-top:4px;padding:3px 9px;border-radius:var(--r);font-size:var(--t-eti);
+  background:rgba(53,168,100,.13);color:var(--o2);
+}
+.tarjeta.no-disp{opacity:.5;cursor:default;}
+.tarjeta.no-disp .chip{background:rgba(166,171,175,.13);color:var(--texto-2);}
+.inicio-pie{display:flex;gap:10px;margin-top:28px;flex-wrap:wrap;}
+
+.btn-sec{
+  background:var(--fondo-3);border:1px solid var(--borde-2);color:var(--texto);
+  padding:8px 14px;border-radius:var(--r);font-size:var(--t-txt);transition:border-color .15s,background .15s;
+}
+.btn-sec:hover{border-color:var(--acento);background:#2b2f33;}
+.btn-sec.peq{padding:5px 10px;font-size:var(--t-eti);}
+.btn-pri{
+  background:var(--acento);border:none;color:#15161a;padding:9px 18px;border-radius:var(--r);
+  font-size:var(--t-txt);font-weight:600;margin-top:14px;margin-right:8px;
+}
+.btn-pri:disabled{opacity:.5;}
+
+/* ================= SIMULACION ================= */
+.sim{display:flex;flex-direction:column;height:100vh;}
+
+.barra{
+  display:flex;align-items:center;gap:14px;padding:9px 16px;
+  background:var(--fondo-2);border-bottom:1px solid var(--borde);flex:0 0 auto;
+}
+.barra-tit{display:flex;flex-direction:column;line-height:1.25;}
+.barra-num{font-size:var(--t-micro);text-transform:uppercase;letter-spacing:.1em;color:var(--texto-3);}
+.barra-nom{font-size:var(--t-tit);font-weight:600;}
+.barra-der{margin-left:auto;display:flex;align-items:center;gap:10px;}
+.perfil-chip{font-size:var(--t-eti);padding:3px 9px;border-radius:var(--r);background:var(--fondo-3);color:var(--texto-2);border:none;}
+.sel-var{display:flex;align-items:center;gap:6px;font-size:var(--t-eti);color:var(--texto-2);}
+.sel-var>span{text-transform:uppercase;letter-spacing:.06em;opacity:.7;}
+.sel-var select{font:inherit;font-size:var(--t-eti);padding:3px 24px 3px 9px;border-radius:var(--r);
+  background:rgba(200,205,209,.12) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='8' height='5'><path d='M0 0h8L4 5z' fill='%23c8cdd1'/></svg>") no-repeat right 9px center;
+  color:var(--acento);border:1px solid rgba(200,205,209,.35);cursor:pointer;appearance:none;-webkit-appearance:none;max-width:210px;}
+.sel-var select:hover{background-color:rgba(200,205,209,.2);}
+.sel-var select:focus-visible{outline:2px solid var(--acento);outline-offset:2px;}
+.sel-var option{background:var(--fondo-2);color:var(--texto);}
+.reloj{font-variant-numeric:tabular-nums;font-size:var(--t-txt);color:var(--texto-2);letter-spacing:.02em;}
+
+.lienzo{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(330px,.95fr);gap:12px;padding:12px;flex:1 1 auto;min-height:0;}
+
+/* ---- Columna del esquema ---- */
+.col-esquema{display:flex;flex-direction:column;gap:10px;min-height:0;}
+.svg-caja{
+  flex:1 1 auto;min-height:0;background:var(--fondo-2);border:none;
+  border-radius:var(--r-g);padding:8px;display:flex;
+}
+.svg-caja svg{width:100%;height:100%;}
+
+.prueba-aviso{margin:0 0 10px;font-size:var(--t-txt);color:var(--texto-2);}
+.prueba-aviso.mal{color:var(--alta);font-weight:600;}
+.btn-flush{
+  font:inherit;font-size:var(--t-eti);font-weight:600;cursor:pointer;
+  background:rgba(53,168,100,.12);border:1px solid var(--o2);color:var(--o2);
+  padding:7px 14px;border-radius:var(--r);transition:background .1s,transform .05s;
+  user-select:none;-webkit-user-select:none;
+}
+.btn-flush:hover{background:rgba(53,168,100,.2);}
+.btn-flush.activo{background:var(--o2);color:#0b1f14;transform:scale(.96);
+  box-shadow:0 0 0 4px rgba(53,168,100,.18);}
+.ctrl-nota{font-size:var(--t-micro);color:var(--texto-3);font-weight:400;letter-spacing:0;text-transform:none;}
+.ctrl.inactivo{opacity:.55;}
+.ctrl.inactivo input[type=range]{filter:grayscale(1);}
+.controles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px 14px;
+  background:var(--fondo-2);border:none;border-radius:var(--r-g);padding:11px 14px;flex:0 0 auto;}
+.ctrl label{display:block;font-size:var(--t-eti);color:var(--texto-2);margin-bottom:3px;}
+.ctrl label b{color:var(--texto);font-variant-numeric:tabular-nums;font-weight:600;}
+/* Mandos deslizantes.
+   Cada sistema dibuja el <input type=range> nativo a su manera: en
+   Windows queda una barra fina y un cuadrito, que no se parece a nada
+   de una maquina de anestesia. Asi que se dibuja aqui, igual en todas
+   partes: una guia hundida y una perilla redonda y clara, como un
+   mando real, con el color de identificacion del gas que regula. */
+.ctrl input[type=range]{
+  -webkit-appearance:none;appearance:none;width:100%;height:19px;
+  background:transparent;margin:3px 0 0;cursor:pointer;
+}
+.ctrl input[type=range]::-webkit-slider-runnable-track{height:7px;border-radius:var(--r);background:#121314;box-shadow:inset 0 1px 2px rgba(0,0,0,.6),inset 0 0 0 1px #585e63;}
+.ctrl input[type=range]::-moz-range-track{height:7px;border-radius:var(--r);background:#121314;box-shadow:inset 0 1px 2px rgba(0,0,0,.6),inset 0 0 0 1px #585e63;}
+.ctrl input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;margin-top:-5px;width:17px;height:17px;border-radius:50%;border:1px solid #6b7176;background:linear-gradient(180deg,#eceef0 0%,#c6cbcf 52%,#aab0b5 100%);
+  box-shadow:0 1px 2px rgba(0,0,0,.55);
+}
+.ctrl input[type=range]::-moz-range-thumb{width:17px;height:17px;border-radius:50%;border:1px solid #6b7176;background:linear-gradient(180deg,#eceef0 0%,#c6cbcf 52%,#aab0b5 100%);box-shadow:0 1px 2px rgba(0,0,0,.55);}
+.ctrl input[type=range]:focus-visible{outline:none;}
+.ctrl input[type=range]:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 3px var(--acento-sua),0 1px 2px rgba(0,0,0,.55);}
+.ctrl input[type=range]:focus-visible::-moz-range-thumb{box-shadow:0 0 0 3px var(--acento-sua),0 1px 2px rgba(0,0,0,.55);}
+.ctrl input[type=range]:active::-webkit-slider-thumb{background:linear-gradient(180deg,#c6cbcf,#9ea4a9);}
+.ctrl input[type=range]:active::-moz-range-thumb{background:linear-gradient(180deg,#c6cbcf,#9ea4a9);}
+
+/* El anillo de la perilla lleva el color de identificacion del gas,
+   el mismo de la bolita en el circuito y de la etiqueta en la leyenda. */
+#cO2::-webkit-slider-thumb,#bgO2::-webkit-slider-thumb{box-shadow:inset 0 0 0 3px var(--o2),0 1px 2px rgba(0,0,0,.55);}
+#cO2::-moz-range-thumb,#bgO2::-moz-range-thumb{box-shadow:inset 0 0 0 3px var(--o2),0 1px 2px rgba(0,0,0,.55);}
+#cAire::-webkit-slider-thumb,#bgAire::-webkit-slider-thumb{box-shadow:inset 0 0 0 3px var(--aire),0 1px 2px rgba(0,0,0,.55);}
+#cAire::-moz-range-thumb,#bgAire::-moz-range-thumb{box-shadow:inset 0 0 0 3px var(--aire),0 1px 2px rgba(0,0,0,.55);}
+#cN2O::-webkit-slider-thumb,#bgN2O::-webkit-slider-thumb{box-shadow:inset 0 0 0 3px var(--n2o),0 1px 2px rgba(0,0,0,.55);}
+#cN2O::-moz-range-thumb,#bgN2O::-moz-range-thumb{box-shadow:inset 0 0 0 3px var(--n2o),0 1px 2px rgba(0,0,0,.55);}
+#cDial::-webkit-slider-thumb,#bgDial::-webkit-slider-thumb{box-shadow:inset 0 0 0 3px var(--agente),0 1px 2px rgba(0,0,0,.55);}
+#cDial::-moz-range-thumb,#bgDial::-moz-range-thumb{box-shadow:inset 0 0 0 3px var(--agente),0 1px 2px rgba(0,0,0,.55);}
+.ctrl-fila{display:flex;gap:7px;align-items:flex-end;grid-column:1/-1;flex-wrap:wrap;}
+
+/* ---- Columna de la capa 1 ---- */
+.col-capa1{display:flex;flex-direction:column;gap:10px;min-height:0;overflow-y:auto;padding-right:3px;}
+.col-capa1::-webkit-scrollbar{width:8px;}
+.col-capa1::-webkit-scrollbar-thumb{background:var(--borde-2);border-radius:var(--r);}
+
+.banda-alarmas{display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-height:34px;}
+.alarma{
+  display:flex;align-items:center;gap:7px;border:none;border-radius:var(--r);padding:5px 11px;
+  font-size:var(--t-txt);color:#15161a;font-weight:600;text-align:left;
+}
+.alarma .pri{font-size:var(--t-micro);text-transform:uppercase;letter-spacing:.08em;opacity:.75;}
+.alarma{color:#15161a;}
+.alarma.pri-alta{background:var(--alta);color:#fff;animation:parp-rapido 1s steps(2,end) infinite;}
+.alarma.pri-media{background:var(--media);animation:parp-lento 2.4s steps(2,end) infinite;}
+.alarma.pri-baja{background:var(--baja);}
+@keyframes parp-rapido{0%,100%{opacity:1;}50%{opacity:.45;}}
+@keyframes parp-lento{0%,100%{opacity:1;}50%{opacity:.6;}}
+.sin-alarmas{font-size:var(--t-eti);color:var(--texto-3);padding:6px 2px;}
+.ocultas,.audio-pausado{font-size:var(--t-eti);color:var(--texto-3);padding:4px 8px;border:1px dashed var(--borde-2);border-radius:var(--r);}
+
+.bloque-capa1{background:var(--fondo-2);border:none;border-radius:var(--r-g);padding:12px 14px;}
+.cab-bloque{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;}
+.cab-bloque h3{margin:0;font-size:var(--t-eti);text-transform:uppercase;letter-spacing:.1em;color:var(--texto-3);font-weight:600;}
+.sintoma{margin:0 0 10px;font-size:var(--t-tit);line-height:1.55;}
+.acciones-capa{display:flex;gap:7px;}
+
+.btn-capa2,.btn-capa3{
+  border:1px solid var(--borde-2);background:transparent;color:var(--texto-2);
+  padding:4px 11px;border-radius:var(--r);font-size:var(--t-eti);transition:color .15s,border-color .15s;
+}
+.btn-capa2:hover{color:var(--acento);border-color:var(--acento);}
+.btn-capa3:hover{color:var(--media);border-color:var(--media);}
+.btn-capa3.linea{margin-top:10px;}
+
+/* Variables */
+.variables{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:8px;}
+.variable{
+  position:relative;background:var(--fondo-3);border:none;border-left:3px solid var(--borde-2);
+  border-radius:0 var(--r) var(--r) 0;padding:9px 12px 10px;
+}
+.variable.est-ok{border-left-color:var(--o2);}
+.variable.est-aviso{border-left-color:var(--media);}
+.variable.est-mal{border-left-color:var(--alta);}
+.variable.est-neutro{border-left-color:var(--borde-2);}
+.v-et{display:block;font-size:var(--t-micro);color:var(--texto-3);text-transform:uppercase;letter-spacing:.08em;line-height:1.2;}
+/* La lectura se compone como en un monitor: la cifra grande, la unidad
+   pequena al lado, y digitos de ancho fijo para que el numero no se
+   mueva de sitio al cambiar de valor. */
+.v-val{
+  display:block;font-size:var(--t-cifra);font-weight:500;line-height:1.08;margin-top:3px;
+  font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;letter-spacing:-.015em;
+}
+.v-val.texto{font-size:var(--t-tit);font-weight:600;letter-spacing:0;line-height:1.3;margin-top:6px;}
+/* La unidad no se pone en versalitas: cmH2O y mmHg llevan mayusculas
+   y minusculas que significan cosas distintas. */
+.v-val small{font-size:var(--t-eti);color:var(--texto-3);margin-left:5px;font-weight:500;
+  letter-spacing:.01em;vertical-align:.12em;}
+.v-por-que{
+  position:absolute;top:6px;right:6px;width:18px;height:18px;border-radius:50%;
+  border:1px solid var(--borde-2);background:transparent;color:var(--texto-3);font-size:var(--t-eti);line-height:1;padding:0;
+}
+.v-por-que:hover{color:var(--acento);border-color:var(--acento);}
+
+/* Acciones */
+.acciones{display:flex;flex-direction:column;gap:7px;}
+.accion{
+  display:flex;align-items:flex-start;gap:10px;text-align:left;width:100%;
+  background:var(--fondo-3);border:none;border-radius:var(--r-g);padding:9px 12px;
+  color:var(--texto);font-size:var(--t-txt);transition:box-shadow .15s,background .15s;
+}
+.accion-cuerpo{display:flex;flex-direction:column;gap:2px;flex:1 1 auto;}
+.accion-prop{font-size:var(--t-eti);color:var(--texto-3);line-height:1.4;}
+.accion:hover .accion-prop{color:var(--texto-2);}
+.accion:hover{box-shadow:inset 0 0 0 1px var(--borde-2);background:#31353a;}
+.accion.hecha{opacity:.55;}
+.accion-tipo{
+  flex:0 0 auto;margin-top:1px;font-size:var(--t-micro);text-transform:uppercase;letter-spacing:.07em;
+  padding:3px 7px;border-radius:var(--r);background:var(--borde);color:var(--texto-2);
+}
+.tipo-proteccion .accion-tipo{background:rgba(53,168,100,.16);color:var(--o2);}
+.tipo-observacion .accion-tipo{background:rgba(200,205,209,.16);color:var(--acento);}
+.tipo-prueba .accion-tipo{background:rgba(146,129,189,.18);color:var(--espirado);}
+.tipo-correccion .accion-tipo{background:rgba(240,196,25,.16);color:var(--media);}
+
+/* Registro */
+.registro{margin:0;padding:0 0 0 2px;list-style:none;max-height:150px;overflow-y:auto;font-size:var(--t-txt);}
+.registro li{display:flex;gap:9px;padding:4px 0;border-bottom:1px solid rgba(54,58,62,.6);color:var(--texto-2);}
+.registro li:last-child{border-bottom:none;}
+.registro .t{font-variant-numeric:tabular-nums;color:var(--texto-3);flex:0 0 auto;}
+.registro li.bien{color:var(--bien);}
+.registro li.mal{color:var(--mal);}
+.registro li.parcial{color:var(--parcial);}
+.registro li.vacio{color:var(--texto-3);font-style:italic;}
+
+/* Curvas */
+.curvas{flex:0 0 auto;height:178px;padding:0 12px 12px;}
+.curvas canvas{
+  width:100%;height:100%;display:block;background:var(--pantalla);
+  border:none;border-radius:var(--r);
+}
+
+/* ================= SVG ================= */
+#svgMaquina .marco rect{fill:rgba(22,34,43,.42);stroke:var(--borde);stroke-width:1;}
+#svgMaquina .marco text{fill:var(--texto-3);font-size:11px;letter-spacing:.05em;text-transform:uppercase;}
+#svgMaquina .bloque{fill:var(--fondo-3);stroke:var(--borde-2);stroke-width:1;}
+#svgMaquina .bloque.acento{stroke:var(--acento);stroke-opacity:.5;}
+#svgMaquina .bloque.tenue{fill:rgba(22,34,43,.5);stroke:var(--borde);}
+#svgMaquina .bloque.alerta{stroke:var(--alta);stroke-width:1.6;fill:rgba(255,77,79,.1);}
+#svgMaquina .et{fill:var(--texto);font-size:12px;}
+#svgMaquina .et-mini{fill:var(--texto-2);font-size:10px;}
+#svgMaquina .val{fill:var(--texto);font-size:12px;font-weight:600;}
+#svgMaquina .val-mini{fill:var(--texto-2);font-size:10.5px;font-weight:600;}
+#svgMaquina .uni{fill:var(--texto-3);font-size:9px;}
+
+#svgMaquina .manometro{fill:#0a1218;stroke:var(--borde-2);stroke-width:2;}
+#svgMaquina .manometro.alerta{stroke:var(--alta);stroke-width:2.6;}
+#svgMaquina .cilindro{fill:#1c2a34;stroke:var(--borde-2);stroke-width:1.5;}
+#svgMaquina .cilindro.activo{stroke:var(--o2);stroke-width:2.4;}
+#svgMaquina .valvula-cil{fill:#182530;stroke:var(--borde-2);stroke-width:1;}
+#svgMaquina .valvula-cil.abierto{fill:rgba(61,220,132,.18);stroke:var(--o2);}
+
+#svgMaquina .tubo{fill:rgba(10,18,24,.9);stroke:var(--borde-2);stroke-width:1;}
+#svgMaquina .bobina{stroke:#0a1218;stroke-width:1.2;transition:cy .25s linear;}
+#svgMaquina .bobina.o2{fill:var(--o2);}
+#svgMaquina .bobina.aire{fill:var(--aire);}
+#svgMaquina .bobina.n2o{fill:var(--n2o);}
+
+#svgMaquina .bloque.vapor{fill:#1d2630;stroke:var(--agente);stroke-opacity:.45;}
+#svgMaquina .dial{fill:#0e1820;stroke:var(--agente);stroke-width:2;}
+#svgMaquina .aguja{stroke:var(--agente);stroke-width:2.4;stroke-linecap:round;}
+#svgMaquina .nivel-marco{fill:#0a1218;stroke:var(--borde-2);stroke-width:1;}
+#svgMaquina .nivel-lleno{fill:var(--agente);opacity:.62;}
+
+#svgMaquina .linea{fill:none;stroke:var(--borde-2);stroke-width:4;stroke-linecap:round;}
+#svgMaquina .linea.fresco{stroke:rgba(159,232,196,.45);}
+#svgMaquina .linea.tenue{stroke:var(--borde);stroke-width:3;stroke-dasharray:5 5;}
+#svgMaquina .linea.inactiva{stroke-opacity:.35;}
+#svgMaquina .nodo{fill:var(--borde-2);}
+#svgMaquina .valvula{fill:#0e1820;stroke:var(--borde-2);stroke-width:2;}
+#svgMaquina .valvula.abierta{fill:rgba(76,201,240,.22);stroke:var(--acento);}
+#svgMaquina .valvula.apl.abierta{fill:rgba(255,197,61,.2);stroke:var(--media);}
+#svgMaquina .canister{fill:url(#gradCanister);stroke:var(--borde-2);stroke-width:1.5;opacity:.82;}
+#svgMaquina .canister-virado{fill:#8e6bb8;opacity:.9;}
+#svgMaquina .camara{fill:rgba(10,18,24,.75);stroke:var(--borde-2);stroke-width:1.5;}
+#svgMaquina .fuelle{fill:rgba(179,157,219,.35);stroke:var(--espirado);stroke-width:1.5;}
+#svgMaquina .fuelle.sin-tope{stroke:var(--alta);stroke-dasharray:4 3;}
+#svgMaquina .bolsa{fill:rgba(179,157,219,.25);stroke:var(--espirado);stroke-width:1.5;}
+#svgMaquina .pulmon{fill:rgba(255,120,140,.2);stroke:#ff8095;stroke-width:1.6;}
+#svgMaquina .sensor{fill:#16222b;stroke:var(--borde-2);stroke-width:1;}
+#svgMaquina .marca-fuga circle{fill:rgba(255,77,79,.2);stroke:var(--alta);stroke-width:2;}
+#svgMaquina .marca-fuga text{fill:var(--alta);font-size:14px;font-weight:700;}
+#svgMaquina .zona{cursor:default;}
+
+/* ================= MODAL ================= */
+.modal{
+  position:fixed;inset:0;background:rgba(8,9,10,.74);backdrop-filter:blur(2px);
+  display:flex;align-items:center;justify-content:center;padding:24px;z-index:40;
+}
+.modal-caja{
+  position:relative;background:var(--fondo-2);border:1px solid var(--borde-2);border-radius:var(--r-g);
+  padding:24px 26px;max-width:620px;width:100%;max-height:84vh;overflow-y:auto;
+}
+.modal-caja.ancho{max-width:860px;}
+.cerrar{
+  position:absolute;top:12px;right:14px;background:transparent;border:none;color:var(--texto-3);
+  font-size:var(--t-cifra);line-height:1;padding:2px 6px;border-radius:var(--r);
+}
+.cerrar:hover{color:var(--texto);}
+.modal-tit{margin:0 0 12px;font-size:var(--t-sub);}
+.modal-tit.ok{color:var(--o2);}
+.capa2{font-size:var(--t-tit);line-height:1.65;color:var(--texto);margin:0 0 6px;}
+.c3-resumen{font-size:var(--t-txt);color:var(--texto-2);margin:0 0 14px;}
+.c3-sub{margin:18px 0 6px;font-size:var(--t-eti);text-transform:uppercase;letter-spacing:.09em;color:var(--texto-3);}
+.c3-p{font-size:var(--t-txt);line-height:1.6;color:var(--texto-2);margin:0;}
+.c3-p.marca-p{border-left:3px solid var(--media);padding-left:11px;}
+.c3-nota{font-size:var(--t-eti);color:var(--texto-3);margin-top:16px;}
+.rangos{list-style:none;margin:8px 0 0;padding:0;}
+.rangos li{
+  display:flex;justify-content:space-between;gap:18px;align-items:baseline;
+  padding:8px 0;border-bottom:1px solid rgba(54,58,62,.7);font-size:var(--t-txt);
+}
+.rangos li:last-child{border-bottom:none;}
+.rg-q{color:var(--texto-2);flex:0 0 auto;max-width:46%;}
+.rg-v{color:var(--texto);text-align:right;flex:1 1 auto;}
+.citas{list-style:none;margin:0;padding:0;}
+.citas li{
+  display:flex;justify-content:space-between;gap:16px;align-items:baseline;
+  padding:7px 0;border-bottom:1px solid rgba(54,58,62,.7);font-size:var(--t-txt);
+}
+.citas li:last-child{border-bottom:none;}
+.c3-t{color:var(--texto-2);flex:1 1 auto;}
+.ev{font-size:var(--t-micro);padding:1px 5px;border-radius:var(--r);margin-left:5px;}
+.ev-M{background:rgba(53,168,100,.16);color:var(--o2);}
+.ev-I{background:rgba(200,205,209,.16);color:var(--acento);}
+.ev-P{background:rgba(240,196,25,.16);color:var(--media);}
+.ev-V{background:rgba(216,56,47,.16);color:var(--mal);}
+
+/* Prueba de fugas */
+.prueba{display:flex;align-items:center;gap:24px;margin:18px 0;}
+.manometro-grande{
+  width:110px;height:110px;border-radius:50%;border:3px solid var(--borde-2);background:#0a1218;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;flex:0 0 auto;
+}
+.manometro-grande span{font-size:var(--t-cifra);font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:-.015em;}
+.manometro-grande small{font-size:var(--t-micro);color:var(--texto-3);}
+.prueba-datos{display:flex;flex-direction:column;gap:10px;}
+.prueba-datos div{display:flex;flex-direction:column;}
+.prueba-datos span{font-size:var(--t-eti);color:var(--texto-3);text-transform:uppercase;letter-spacing:.06em;}
+.prueba-datos b{font-size:var(--t-sub);font-weight:500;font-variant-numeric:tabular-nums;}
+.prueba-res{font-size:var(--t-txt);padding:10px 13px;border-radius:var(--r-g);min-height:10px;}
+.prueba-res.bien{background:rgba(53,168,100,.1);border-left:3px solid var(--o2);}
+.prueba-res.mal{background:rgba(216,56,47,.1);border-left:3px solid var(--alta);}
+
+/* Resumen */
+.resumen-cifras{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0;}
+.resumen-cifras div{background:var(--fondo-3);border:none;border-radius:var(--r-g);padding:11px;text-align:center;}
+.resumen-cifras b{display:block;font-size:var(--t-cifra);font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:-.015em;}
+.resumen-cifras span{font-size:var(--t-micro);color:var(--texto-3);text-transform:uppercase;letter-spacing:.05em;}
+.resumen-cifras .bien b{color:var(--bien);}
+.resumen-cifras .parcial b{color:var(--parcial);}
+.resumen-cifras .mal b{color:var(--mal);}
+.pasos-resumen{font-size:var(--t-txt);color:var(--texto-2);padding-left:20px;line-height:1.75;margin:8px 0 0;}
+.lista-sup{font-size:var(--t-txt);color:var(--texto-2);padding-left:20px;line-height:1.65;}
+.lista-sup li{margin-bottom:9px;}
+.lista-sup b{color:var(--texto);}
+
+/* Tabla del perfil */
+.tabla-env{max-height:52vh;overflow-y:auto;border:none;border-radius:var(--r-g);margin-top:12px;}
+.tabla-perfil{width:100%;border-collapse:collapse;font-size:var(--t-txt);}
+.tabla-perfil th{
+  position:sticky;top:0;background:var(--fondo-3);text-align:left;padding:8px 10px;
+  font-size:var(--t-micro);text-transform:uppercase;letter-spacing:.07em;color:var(--texto-3);border-bottom:1px solid var(--borde);
+}
+.tabla-perfil td{padding:6px 10px;border-bottom:1px solid rgba(54,58,62,.55);color:var(--texto-2);vertical-align:top;}
+.tabla-perfil td.v{color:var(--texto);font-variant-numeric:tabular-nums;white-space:nowrap;}
+.tabla-perfil tr.grupo td{
+  background:rgba(200,205,209,.07);color:var(--acento);font-size:var(--t-micro);
+  text-transform:uppercase;letter-spacing:.09em;font-weight:600;
+}
+
+/* Retroalimentacion flotante */
+.retro{
+  position:fixed;right:18px;bottom:18px;max-width:390px;z-index:30;
+  background:var(--fondo-2);border:1px solid var(--borde-2);border-left-width:4px;border-radius:var(--r-g);
+  padding:14px 36px 14px 16px;box-shadow:0 12px 34px rgba(0,0,0,.45);
+  animation:entra .22s ease-out;
+}
+@keyframes entra{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+.retro.bien{border-left-color:var(--bien);}
+.retro.parcial{border-left-color:var(--parcial);}
+.retro.mal{border-left-color:var(--mal);}
+.retro-cab{font-size:var(--t-txt);margin-bottom:6px;}
+.retro.bien .retro-cab b{color:var(--bien);}
+.retro.parcial .retro-cab b{color:var(--parcial);}
+.retro.mal .retro-cab b{color:var(--mal);}
+.retro p{margin:0;font-size:var(--t-txt);line-height:1.55;color:var(--texto-2);}
+.retro-cuando{
+  margin-top:8px !important;padding:7px 10px;border-radius:0 var(--r) var(--r) 0;
+  background:rgba(200,205,209,.08);border-left:3px solid var(--acento);
+}
+.retro-cuando b{color:var(--acento);}
+.cerrar-retro{
+  position:absolute;top:8px;right:10px;background:transparent;border:none;
+  color:var(--texto-3);font-size:var(--t-sub);line-height:1;padding:2px 5px;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width:1080px){
+  .lienzo{grid-template-columns:1fr;}
+  .sim{height:auto;min-height:100vh;}
+  .col-capa1{overflow:visible;max-height:none;}
+  .svg-caja{min-height:360px;}
+  .curvas{height:160px;}
+}
+@media (max-width:620px){
+  .inicio{padding:24px 14px 48px;}
+  .barra{flex-wrap:wrap;}
+  .resumen-cifras{grid-template-columns:repeat(2,1fr);}
+  .prueba{flex-direction:column;align-items:flex-start;}
+}
+
+/* =====================================================================
+   ENSAYO 2 - Maquina completa, modulos, curvas compactas y tutorial
+   ===================================================================== */
+
+/* ---------- Pantalla de inicio: eleccion de modo ---------- */
+.modos{display:grid;grid-template-columns:repeat(auto-fit,minmax(272px,1fr));gap:14px;margin-bottom:26px;}
+.modo-tarj{
+  position:relative;display:flex;flex-direction:column;gap:8px;text-align:left;padding:22px 20px 18px;
+  background:var(--fondo-2);border:none;border-radius:var(--r-g);color:var(--texto);
+  transition:box-shadow .15s,transform .15s,background .15s;
+}
+.modo-tarj:hover{box-shadow:inset 0 0 0 1px var(--borde-2);transform:translateY(-1px);background:var(--fondo-3);}
+.modo-tarj.destacada{border-color:rgba(200,205,209,.45);background:linear-gradient(180deg,#24272b,#1b1e21);}
+.modo-num{
+  position:absolute;top:16px;right:18px;width:26px;height:26px;border-radius:50%;
+  background:var(--fondo-3);border:1px solid var(--borde-2);color:var(--texto-2);
+  font-size:var(--t-eti);display:flex;align-items:center;justify-content:center;
+}
+.modo-tarj.destacada .modo-num{background:var(--acento);color:#15161a;border-color:var(--acento);font-weight:700;}
+.modo-tit{font-size:var(--t-sub);font-weight:600;padding-right:34px;}
+.modo-txt{font-size:var(--t-txt);color:var(--texto-2);line-height:1.55;min-height:58px;}
+.modo-pie{font-size:var(--t-eti);text-transform:uppercase;letter-spacing:.08em;color:var(--texto-3);}
+.modo-tarj.destacada .modo-pie{color:var(--acento);}
+.volver{margin-bottom:18px;}
+.chip.chip-off{background:rgba(166,171,175,.13);color:var(--texto-2);}
+.cab-nota{font-size:var(--t-micro);color:var(--texto-3);}
+
+/* ---------- Explorador de la maquina ---------- */
+.exp{display:flex;flex-direction:column;min-height:100vh;}
+.exp-cuerpo{
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);
+  gap:14px;padding:14px;flex:1 1 auto;min-height:0;
+}
+.exp-cuerpo.con-modulo{grid-template-columns:300px minmax(0,1fr);}
+.exp-maquina{display:flex;flex-direction:column;gap:8px;min-height:0;}
+.exp-detalle{display:flex;flex-direction:column;gap:10px;min-height:0;overflow-y:auto;padding-right:3px;}
+.exp-detalle::-webkit-scrollbar{width:8px;}
+.exp-detalle::-webkit-scrollbar-thumb{background:var(--borde-2);border-radius:var(--r);}
+
+.lista-modulos{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:6px;}
+.lista-modulos button{
+  display:flex;flex-direction:column;gap:2px;width:100%;text-align:left;
+  background:var(--fondo-3);border:none;border-radius:var(--r-g);padding:9px 12px;color:var(--texto);
+  transition:box-shadow .15s,background .15s;
+}
+.lista-modulos button:hover{box-shadow:inset 0 0 0 1px var(--borde-2);background:#31353a;}
+.lista-modulos b{font-size:var(--t-txt);}
+.lista-modulos span{font-size:var(--t-eti);color:var(--texto-2);line-height:1.45;}
+.lista-fallos{margin:6px 0 0;padding-left:18px;font-size:var(--t-txt);color:var(--texto-2);line-height:1.6;}
+.lista-fallos li{margin-bottom:5px;}
+.escs{display:flex;flex-direction:column;gap:6px;}
+.btn-esc{
+  text-align:left;background:var(--fondo-3);border:none;border-radius:var(--r-g);
+  padding:9px 12px;color:var(--texto);font-size:var(--t-txt);transition:box-shadow .15s,background .15s;
+}
+.btn-esc:hover:not(:disabled){box-shadow:inset 0 0 0 1px var(--borde-2);background:#31353a;}
+.btn-esc.off{opacity:.5;cursor:default;}
+
+/* ---------- Caja de la vista de la maquina ---------- */
+.vista-caja{
+  flex:1 1 auto;min-height:0;height:calc(100vh - 212px);
+  background:radial-gradient(130% 90% at 50% 0%,#22262a 0%,#131517 100%);
+  border:none;border-radius:var(--r-g);padding:8px;display:flex;
+}
+.vista-caja.chica{height:auto;flex:1 1 auto;min-height:300px;max-height:46vh;}
+.vista-caja svg{width:100%;height:100%;}
+.vista-pie{
+  margin:0;font-size:var(--t-eti);color:var(--texto-2);line-height:1.45;min-height:34px;
+  background:var(--fondo-2);border:none;border-radius:var(--r-g);padding:8px 11px;
+}
+.vista-pie b{color:var(--texto);}
+
+/* ---------- Escenario: dos columnas ---------- */
+.lienzo2{
+  display:grid;grid-template-columns:302px minmax(0,1fr);
+  gap:12px;padding:12px;flex:1 1 auto;min-height:0;
+}
+.col-izq{display:flex;flex-direction:column;gap:9px;min-height:0;}
+.col-der{display:flex;flex-direction:column;gap:10px;min-height:0;overflow-y:auto;padding-right:3px;}
+.col-der::-webkit-scrollbar{width:8px;}
+.col-der::-webkit-scrollbar-thumb{background:var(--borde-2);border-radius:var(--r);}
+
+/* ---------- Curvas compactas ---------- */
+.curvas-par{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.curva-tarj{background:var(--pantalla);border:none;border-radius:var(--r);padding:7px 8px 4px;}
+.curva-cab{display:flex;align-items:baseline;gap:5px;margin-bottom:3px;}
+.curva-cab span{font-size:var(--t-micro);color:var(--texto-3);text-transform:uppercase;letter-spacing:.05em;flex:1 1 auto;}
+.curva-cab b{font-size:var(--t-sub);font-variant-numeric:tabular-nums;}
+.curva-cab small{font-size:var(--t-micro);color:var(--texto-3);}
+.curva-tarj canvas{width:100%;height:92px;display:block;}
+
+/* =====================================================================
+   SVG de la maquina completa
+   ===================================================================== */
+.vista-maquina .rot{fill:var(--texto-2);font-size:11px;}
+.vista-maquina .rot.mini{font-size:9.5px;fill:var(--texto-3);}
+.vista-maquina .rot.nano{font-size:8.5px;fill:var(--texto-3);}
+.vista-maquina .rot.c{text-anchor:middle;}
+.vista-maquina .rot.cil{font-size:11px;font-weight:700;text-anchor:middle;}
+.vista-maquina .rot.cil.o2{fill:var(--o2);} .vista-maquina .rot.cil.n2o{fill:var(--n2o);}
+.vista-maquina .rot.chapa{font-size:7.5px;letter-spacing:.12em;fill:rgba(190,220,235,.75);font-weight:600;}
+.vista-maquina .sombra-suelo{fill:rgba(0,0,0,.42);}
+
+/* tornillos y filos de luz */
+.vista-maquina .tornillo circle{fill:#16242e;stroke:#3b5467;stroke-width:.8;}
+.vista-maquina .tornillo line{stroke:#52708a;stroke-width:.9;}
+.vista-maquina .cabezal-luz,.vista-maquina .carro-luz,.vista-maquina .bloque-luz,
+.vista-maquina .base-luz,.vista-maquina .vapor-luz,.vista-maquina .pared-luz,
+.vista-maquina .brazo-luz,.vista-maquina .tirador-luz{fill:rgba(140,190,220,.26);}
+
+/* toma de pared */
+.vista-maquina .pared{fill:url(#gMetal);stroke:var(--borde-2);stroke-width:1;}
+.vista-maquina .toma-aro{fill:#0c151c;stroke:var(--borde-2);stroke-width:1.4;}
+.vista-maquina .toma-aro.o2{stroke:rgba(61,220,132,.45);}
+.vista-maquina .toma-aro.aire{stroke:rgba(255,209,102,.45);}
+.vista-maquina .toma-aro.n2o{stroke:rgba(108,182,255,.45);}
+.vista-maquina .toma.o2{fill:var(--o2);} .vista-maquina .toma.aire{fill:var(--aire);}
+.vista-maquina .toma.n2o{fill:var(--n2o);}
+.vista-maquina .toma.sin-presion{fill:#2f4150;}
+.vista-maquina .manguera-base{fill:none;stroke:#0a1218;stroke-width:8;stroke-linecap:round;}
+.vista-maquina .manguera{fill:none;stroke-width:5;stroke-linecap:round;}
+.vista-maquina .manguera.o2{stroke:var(--o2);} .vista-maquina .manguera.aire{stroke:var(--aire);}
+.vista-maquina .manguera.n2o{stroke:var(--n2o);}
+.vista-maquina .manguera.sin-presion{stroke:#2f4150;stroke-dasharray:5 5;}
+
+/* cilindros */
+.vista-maquina .yugo{fill:url(#gMetal);stroke:var(--borde-2);stroke-width:1;}
+.vista-maquina .cil-cuerpo{fill:url(#gCilindrico);stroke:var(--borde-2);stroke-width:1.2;}
+.vista-maquina .cil-cuerpo.activo{stroke:var(--o2);stroke-width:2.2;}
+.vista-maquina .cil-hombro{fill:url(#gCilindrico);stroke:var(--borde-2);stroke-width:1.2;}
+.vista-maquina .cil-cuello{fill:#33495c;stroke:var(--borde-2);stroke-width:1;}
+.vista-maquina .cil-brillo{fill:rgba(170,215,240,.16);}
+.vista-maquina .volante{fill:#2b3f50;stroke:var(--borde-2);stroke-width:1.4;}
+.vista-maquina .volante-radio{stroke:#55738d;stroke-width:1.6;stroke-linecap:round;}
+
+/* manometros */
+.vista-maquina .man-aro{fill:#33495c;stroke:var(--borde-2);stroke-width:1;}
+.vista-maquina .man{fill:#f1f6f8;stroke:#0a1218;stroke-width:1;}
+.vista-maquina .man.alerta{fill:#ffe3e3;stroke:var(--alta);stroke-width:2;}
+.vista-maquina .tick-man{stroke:#2b3e4c;stroke-width:1.1;}
+.vista-maquina .man-aguja{stroke:#c0392b;stroke-width:1.8;stroke-linecap:round;transition:transform .5s ease-out;}
+.vista-maquina .man-centro{fill:#2b3e4c;}
+.vista-maquina .man-brillo{fill:none;stroke:rgba(255,255,255,.75);stroke-width:2;stroke-linecap:round;}
+.vista-maquina .tubo-rigido{fill:none;stroke:#33495c;stroke-width:3.4;stroke-linecap:round;}
+
+/* monitor */
+.vista-maquina .brazo{fill:var(--cuerpo-2);stroke:var(--cuerpo-borde);stroke-width:1;}
+.vista-maquina .cable{fill:none;stroke:#101a21;stroke-width:3;stroke-linecap:round;}
+.vista-maquina .bisel{fill:#20262b;stroke:#454d57;stroke-width:1.5;}
+.vista-maquina .pantalla{fill:url(#gPantalla);stroke:rgba(76,201,240,.22);stroke-width:1;}
+.vista-maquina .pantalla.alarma-alta{stroke:var(--alta);stroke-width:2;}
+.vista-maquina .pantalla-brillo{fill:rgba(140,200,230,.05);}
+.vista-maquina .traza{fill:none;stroke-width:1.4;stroke-linejoin:round;}
+.vista-maquina .traza.paw{stroke:#7dd3fc;} .vista-maquina .traza.capno{stroke:#66e398;}
+.vista-maquina .led{fill:#2a3a45;}
+.vista-maquina .led.pri-alta{fill:var(--alta);animation:parp-rapido 1s steps(2,end) infinite;}
+.vista-maquina .led.pri-media{fill:var(--media);animation:parp-lento 2.4s steps(2,end) infinite;}
+.vista-maquina .led.pri-baja{fill:var(--baja);}
+.vista-maquina .btn-mon{fill:#1b2b36;stroke:var(--borde-2);stroke-width:.8;}
+.vista-maquina .btn-mon.alarma-btn{fill:#3a2a26;stroke:rgba(255,77,79,.4);}
+.vista-maquina .knob{fill:#2b3f50;stroke:var(--borde-2);stroke-width:1.2;}
+.vista-maquina .knob-int{fill:#1b2b36;}
+.vista-maquina .knob-marca{stroke:#7fa3bb;stroke-width:1.4;stroke-linecap:round;}
+
+/* cabezal, flujometros, vaporizador */
+.vista-maquina .cabezal{fill:url(#gCuerpo);stroke:var(--cuerpo-borde);stroke-width:1.2;}
+/* Piezas del Ensayo 4: brazo articulado, pantalla del cabezal y zocalo */
+.vista-maquina path.brazo-art{fill:none;stroke:var(--cuerpo-3);stroke-width:9;stroke-linecap:round;stroke-linejoin:round;}
+.vista-maquina path.brazo-art-luz{fill:none;stroke:#eef2f5;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;opacity:.6;}
+.vista-maquina .brazo-pivote{fill:var(--cuerpo-3);stroke:var(--cuerpo-borde);stroke-width:1;}
+.vista-maquina .pant-cab{fill:#141a1f;stroke:#4a535c;stroke-width:1.2;}
+.vista-maquina .pant-cab-brillo{fill:rgba(255,255,255,.05);}
+.vista-maquina .zocalo{fill:var(--zocalo);stroke:#1e2327;stroke-width:1;}
+.vista-maquina .zocalo-luz{fill:#4a5760;}
+.vista-maquina text.rot.oscuro{fill:#5a646c;}
+.vista-maquina .der{text-anchor:end;}
+.vista-maquina .rot-cuerpo{fill:#626c74;font-size:7.5px;letter-spacing:.07em;text-transform:uppercase;}
+.vista-maquina .rot-cuerpo.c{text-anchor:middle;}
+.vista-maquina .panel-int{fill:rgba(6,11,15,.6);stroke:var(--borde);stroke-width:1;}
+.vista-maquina .fm-tubo{fill:url(#gTuboVidrio);stroke:var(--borde-2);stroke-width:1;}
+.vista-maquina .fm-brillo{fill:rgba(180,222,245,.22);}
+.vista-maquina .tick{stroke:rgba(142,168,181,.55);stroke-width:1;}
+.vista-maquina .fm-bobina{stroke:#05090c;stroke-width:1.2;transition:cy .25s linear;}
+.vista-maquina .fm-bobina.o2{fill:var(--o2);} .vista-maquina .fm-bobina.aire{fill:var(--aire);}
+.vista-maquina .fm-bobina.n2o{fill:var(--n2o);}
+.vista-maquina .perilla{fill:#2b3f50;stroke:var(--borde-2);stroke-width:1.2;}
+.vista-maquina .perilla.o2{stroke:rgba(61,220,132,.55);}
+.vista-maquina .perilla.aire{stroke:rgba(255,209,102,.55);}
+.vista-maquina .perilla.n2o{stroke:rgba(108,182,255,.55);}
+.vista-maquina .perilla-marca{stroke:#8fb3c9;stroke-width:1.4;stroke-linecap:round;}
+.vista-maquina .vapor-base{fill:#2b3f50;stroke:var(--borde-2);stroke-width:1;}
+.vista-maquina .vapor-cuerpo{fill:url(#gMetalLat);stroke:var(--agente);stroke-opacity:.5;stroke-width:1.5;}
+.vista-maquina .palanca{fill:#3a4d5e;stroke:var(--borde-2);stroke-width:1;}
+.vista-maquina .vapor-dial{fill:#15222c;stroke:var(--agente);stroke-width:2;}
+.vista-maquina .vapor-aguja{stroke:var(--agente);stroke-width:2.8;stroke-linecap:round;transition:transform .3s;}
+.vista-maquina .vapor-centro{fill:var(--agente);}
+.vista-maquina .moleteado{stroke:rgba(255,159,69,.5);stroke-width:1.1;}
+.vista-maquina .tick-dial{stroke:rgba(255,159,69,.7);stroke-width:1.2;}
+.vista-maquina .num-dial{fill:rgba(255,183,112,.9);font-size:7.5px;text-anchor:middle;}
+.vista-maquina .vapor-vis{fill:#060d12;stroke:var(--borde-2);stroke-width:1;}
+.vista-maquina .vapor-nivel{fill:var(--agente);opacity:.65;}
+.vista-maquina .vapor-min{stroke:rgba(255,77,79,.65);stroke-width:1.4;}
+.vista-maquina .vapor-max{stroke:rgba(61,220,132,.55);stroke-width:1.4;}
+.vista-maquina .puesto-libre{fill:rgba(6,11,15,.3);stroke:var(--borde-2);stroke-width:1.2;stroke-dasharray:5 5;}
+.vista-maquina .rail{fill:#2b3f50;}
+
+/* superficie, carro, cajones */
+.vista-maquina .superficie{fill:url(#gEncimera);stroke:var(--cuerpo-borde);stroke-width:1;}
+.vista-maquina .superficie-canto{fill:#1b2b36;stroke:var(--borde);stroke-width:1;}
+.vista-maquina .flush-aro{fill:#1b2b36;stroke:var(--borde-2);stroke-width:1.2;}
+.vista-maquina .flush{fill:rgba(61,220,132,.3);stroke:var(--o2);stroke-width:2;transition:fill .1s;}
+.vista-maquina .flush.activo{fill:var(--o2);filter:drop-shadow(0 0 5px var(--o2));}
+.vista-maquina .carro{fill:url(#gCuerpo);stroke:var(--cuerpo-borde);stroke-width:1.2;}
+.vista-maquina .cajon{fill:url(#gCajon);stroke:var(--cuerpo-borde);stroke-width:.9;}
+.vista-maquina .cajon-sombra{fill:rgba(0,0,0,.4);}
+.vista-maquina .tirador{fill:#aab4bd;stroke:#8a959e;stroke-width:.8;}
+
+/* sistema respiratorio */
+.vista-maquina .bloque-resp{fill:url(#gCuerpo);stroke:var(--cuerpo-borde);stroke-width:1.2;}
+.vista-maquina .camara-tapa,.vista-maquina .camara-base,
+.vista-maquina .canister-tapa{fill:#3b5467;stroke:var(--borde-2);stroke-width:1;}
+.vista-maquina .camara{fill:url(#gCristal);stroke:rgba(200,232,246,.34);stroke-width:1.5;}
+.vista-maquina .cristal-brillo{fill:rgba(220,244,255,.11);}
+.vista-maquina .cristal-brillo.tenue{fill:rgba(220,244,255,.06);}
+.vista-maquina .fuelle{fill:url(#gFuelle);stroke:var(--espirado);stroke-width:1.4;}
+.vista-maquina .fuelle.sin-tope{stroke:var(--alta);stroke-dasharray:4 3;}
+.vista-maquina .pliegue{fill:none;stroke:rgba(201,183,236,.5);stroke-width:1.1;}
+.vista-maquina .canister{fill:url(#gCristal);stroke:rgba(200,232,246,.34);stroke-width:1.5;}
+.vista-maquina .canister-cal{fill:url(#gCal);opacity:.86;}
+.vista-maquina .canister-virado{fill:#8e6bb8;opacity:.92;}
+.vista-maquina .canister-grano{fill:url(#pGranulo);}
+.vista-maquina .abrazadera{fill:#3b5467;stroke:#16242e;stroke-width:.8;}
+.vista-maquina .abrazadera-tuerca{fill:#52708a;stroke:#16242e;stroke-width:.8;}
+.vista-maquina .purga{fill:#2b3f50;stroke:var(--borde-2);stroke-width:1;}
+.vista-maquina .bolsa-cuello{fill:#33495c;stroke:var(--borde-2);stroke-width:1;}
+.vista-maquina .bolsa{fill:url(#gBolsa);stroke:var(--espirado);stroke-width:1.5;}
+.vista-maquina .bolsa-brillo{fill:rgba(230,218,255,.22);}
+.vista-maquina .valv-aro{fill:#2b3f50;stroke:var(--borde-2);stroke-width:1;}
+.vista-maquina .valv{fill:#0e1820;stroke:var(--borde-2);stroke-width:1.6;}
+.vista-maquina .valv.abierta{fill:rgba(76,201,240,.26);stroke:var(--acento);}
+.vista-maquina .valv-flecha{fill:none;stroke:rgba(142,168,181,.8);stroke-width:1.2;stroke-linecap:round;}
+.vista-maquina .corrugada-base{fill:none;stroke:#0a1218;stroke-width:13;stroke-linecap:round;}
+.vista-maquina .corrugada{fill:none;stroke-width:11;stroke-dasharray:3.5 3.5;}
+.vista-maquina .corrugada.insp{stroke:rgba(159,232,196,.6);}
+.vista-maquina .corrugada.esp{stroke:rgba(187,167,226,.55);}
+.vista-maquina .corrugada.inactiva{opacity:.3;}
+.vista-maquina .corrugada.desconectada{stroke:var(--alta);opacity:.6;}
+.vista-maquina .pieza-y-cuerpo{fill:#1b2b36;stroke:var(--borde-2);stroke-width:1.2;}
+.vista-maquina .pieza-y{fill:#243542;stroke:var(--borde-2);stroke-width:1.6;}
+.vista-maquina .tubo-paciente{fill:none;stroke:#33495c;stroke-width:6;stroke-linecap:round;}
+.vista-maquina .via-aerea{fill:none;stroke:#8795a2;stroke-width:5;stroke-linecap:round;}
+.vista-maquina .via-aerea-luz{fill:none;stroke:#b9c6d1;stroke-width:1.6;stroke-linecap:round;opacity:.5;}
+.vista-maquina .tubo-et{fill:rgba(190,215,230,.22);stroke:#9fb8c6;stroke-width:1.2;}
+.vista-maquina .lobulo{fill:rgba(154,134,196,.4);stroke:#9a86c4;stroke-width:1.4;}
+.vista-maquina .bronquio{fill:none;stroke:#9a86c4;stroke-width:2.2;stroke-linecap:round;opacity:.8;}
+.vista-maquina .linea-muestreo{fill:none;stroke:rgba(142,168,181,.4);stroke-width:1.6;stroke-dasharray:2 3;}
+.vista-maquina .linea-muestreo.ocluida{stroke:var(--alta);stroke-dasharray:4 4;opacity:.75;}
+.vista-maquina .trampa-agua{fill:rgba(140,190,215,.18);stroke:rgba(142,168,181,.5);stroke-width:1;}
+.vista-maquina .trampa-agua.llena{fill:rgba(108,182,255,.55);stroke:var(--alta);stroke-width:1.6;}
+
+/* evacuacion, base y ruedas */
+.vista-maquina .manguera-agss{fill:none;stroke:#33495c;stroke-width:4;}
+.vista-maquina .agss{fill:url(#gMetalLat);stroke:var(--borde-2);stroke-width:1;}
+.vista-maquina .agss-indic{fill:rgba(61,220,132,.5);stroke:var(--borde-2);stroke-width:.8;}
+.vista-maquina .base{fill:url(#gMetal);stroke:var(--borde-2);stroke-width:1.5;}
+.vista-maquina .horquilla{fill:#2b3f50;stroke:var(--borde-2);stroke-width:1;}
+.vista-maquina .rueda{fill:url(#gRueda);stroke:#0a1218;stroke-width:2;}
+.vista-maquina .rueda-int{fill:#3b5467;stroke:#16242e;stroke-width:1;}
+.vista-maquina .rueda-eje{fill:#16242e;}
+
+/* ---------- Zonas sensibles ---------- */
+.vista-maquina .zona-m{cursor:pointer;}
+.vista-maquina .zona-m .realce{
+  fill:transparent;stroke:transparent;stroke-width:2;
+  transition:fill .15s,stroke .15s;
+}
+.vista-maquina .zona-m:hover .realce{fill:rgba(76,201,240,.12);stroke:var(--acento);}
+.vista-maquina .zona-m:focus{outline:none;}
+.vista-maquina .zona-m:focus .realce{stroke:var(--acento);stroke-dasharray:4 3;}
+.vista-maquina .zona-m.activa .realce{
+  fill:rgba(255,197,61,.14);stroke:var(--media);stroke-width:2.5;
+  animation:pulso-zona 1.8s ease-in-out infinite;
+}
+.vista-maquina .zona-m.descartada .realce{
+  fill:rgba(95,122,136,.07);stroke:rgba(95,122,136,.45);stroke-width:1.5;stroke-dasharray:4 4;
+}
+@keyframes pulso-zona{0%,100%{stroke-opacity:1;}50%{stroke-opacity:.35;}}
+
+/* =====================================================================
+   Tutorial / modo entrenamiento
+   ===================================================================== */
+.tut{
+  position:fixed;left:18px;bottom:18px;width:min(410px,calc(100vw - 36px));z-index:60;
+  cursor:grab;user-select:none;
+  background:linear-gradient(180deg,#24272b,#1b1e21);
+  border:1px solid var(--borde-2);border-left:4px solid var(--acento);border-radius:var(--r-g);
+  padding:14px 16px 12px;box-shadow:0 16px 42px rgba(0,0,0,.52);
+  animation:entra .22s ease-out;
+}
+.tut.es-fin{border-left-color:var(--o2);}
+.tut.arrastrando{cursor:grabbing;box-shadow:0 22px 54px rgba(0,0,0,.62);border-color:var(--acento);}
+.tut-asa{display:flex;flex-direction:column;gap:2.5px;padding:2px 3px;flex:0 0 auto;}
+.tut-asa span{display:block;width:12px;height:2px;border-radius:var(--r);background:var(--borde-2);}
+.tut:hover .tut-asa span{background:var(--texto-3);}
+.tut-txt,.tut-pista{cursor:text;}
+.tut button{cursor:pointer;}
+.tut-cab{display:flex;align-items:center;gap:9px;margin-bottom:8px;}
+.tut-chapa{
+  font-size:var(--t-micro);text-transform:uppercase;letter-spacing:.1em;font-weight:700;
+  background:var(--acento);color:#15161a;padding:3px 8px;border-radius:var(--r);
+}
+.tut.es-fin .tut-chapa{background:var(--o2);}
+.tut-paso{font-size:var(--t-eti);color:var(--texto-3);flex:1 1 auto;}
+.tut-salir{
+  background:transparent;border:none;color:var(--texto-3);font-size:var(--t-eti);
+  text-decoration:underline;padding:2px 4px;
+}
+.tut-salir:hover{color:var(--texto);}
+.tut-txt{margin:0 0 8px;font-size:var(--t-txt);line-height:1.6;color:var(--texto);}
+.tut-pista{
+  margin:0 0 10px;font-size:var(--t-txt);line-height:1.5;color:var(--media);
+  background:rgba(240,196,25,.09);border-left:3px solid var(--media);
+  padding:7px 10px;border-radius:0 var(--r) var(--r) 0;
+}
+.tut-pie{display:flex;align-items:center;gap:10px;}
+.tut-puntos{display:flex;gap:4px;flex:1 1 auto;flex-wrap:wrap;}
+.tut-puntos .pt{width:6px;height:6px;border-radius:50%;background:var(--borde-2);}
+.tut-puntos .pt.hecho{background:var(--o2);opacity:.6;}
+.tut-puntos .pt.act{background:var(--acento);transform:scale(1.35);}
+.tut-botones{display:flex;gap:6px;}
+.btn-pri.peq{padding:6px 12px;font-size:var(--t-eti);margin:0;}
+.btn-pri:disabled{opacity:.45;cursor:default;}
+
+/* foco del tutorial */
+.tut-foco{
+  outline:2px solid var(--media);outline-offset:3px;border-radius:var(--r-g);
+  animation:foco-tut 1.7s ease-in-out infinite;
+}
+@keyframes foco-tut{0%,100%{outline-color:var(--media);}50%{outline-color:rgba(240,196,25,.3);}}
+.vista-maquina .zona-m.tut-foco{outline:none;}
+.vista-maquina .zona-m.tut-foco .realce{
+  fill:rgba(255,197,61,.16);stroke:var(--media);stroke-width:3;
+  animation:pulso-zona 1.4s ease-in-out infinite;
+}
+
+/* deja sitio a la tarjeta del tutorial */
+body.con-tut .col-izq{padding-bottom:210px;}
+
+/* ---------- Responsive ---------- */
+@media (max-width:1180px){
+  .lienzo2{grid-template-columns:260px minmax(0,1fr);}
+  .exp-cuerpo.con-modulo{grid-template-columns:260px minmax(0,1fr);}
+}
+@media (max-width:980px){
+  .lienzo2,.exp-cuerpo,.exp-cuerpo.con-modulo{grid-template-columns:1fr;}
+  .sim,.exp{height:auto;min-height:100vh;}
+  .col-der,.exp-detalle{overflow:visible;}
+  .vista-caja{height:auto;min-height:380px;max-height:60vh;}
+  .vista-caja.chica{max-height:52vh;}
+  .modo-txt{min-height:0;}
+}
+@media (max-width:620px){
+  .curvas-par{grid-template-columns:1fr;}
+  .tut{left:10px;right:10px;width:auto;bottom:10px;}
+}
+
+/* =====================================================================
+   Circuito de gases: pantalla completa
+   ===================================================================== */
+.pane-gases{
+  position:fixed;inset:0;z-index:45;display:flex;flex-direction:column;
+  background:radial-gradient(120% 80% at 50% 0%,#1b1e21 0%,#111214 100%);
+  animation:entra .18s ease-out;
+}
+.pane-barra{
+  display:flex;align-items:center;gap:14px;padding:10px 18px;flex:0 0 auto;
+  background:var(--fondo-2);border-bottom:1px solid var(--borde);
+}
+.pane-cuerpo{
+  display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:12px;
+  padding:12px 14px 14px;flex:1 1 auto;min-height:0;
+}
+.gas-lienzo{
+  background:rgba(13,14,16,.5);border:none;border-radius:var(--r-g);
+  padding:10px;display:flex;min-height:0;overflow:hidden;
+}
+.gas-lienzo svg{width:100%;height:100%;}
+.gas-panel{display:flex;flex-direction:column;gap:10px;min-height:0;overflow-y:auto;padding-right:3px;}
+.gas-panel::-webkit-scrollbar{width:8px;}
+.gas-panel::-webkit-scrollbar-thumb{background:var(--borde-2);border-radius:var(--r);}
+.gas-pie{font-size:var(--t-eti);color:var(--texto-3);margin:0;padding:0 2px;}
+.leyenda{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;}
+.leyenda li{display:flex;align-items:center;gap:7px;font-size:var(--t-eti);color:var(--texto-2);}
+.leyenda i{width:11px;height:11px;border-radius:50%;flex:0 0 auto;}
+
+/* ---------- el diagrama: la maquina por dentro ---------- */
+.vista-gases .secc text{
+  fill:var(--texto-3);font-size:12.5px;letter-spacing:.07em;text-transform:uppercase;font-weight:600;
+}
+
+/* tuberias */
+.vista-gases .tramo{fill:none;stroke-width:8;stroke-linecap:round;stroke-linejoin:round;stroke:rgba(70,98,118,.5);}
+.vista-gases .tramo.g-o2{stroke:rgba(61,220,132,.3);}
+.vista-gases .tramo.g-aire{stroke:rgba(255,209,102,.28);}
+.vista-gases .tramo.g-n2o{stroke:rgba(108,182,255,.28);}
+.vista-gases .tramo.g-mezcla{stroke:rgba(159,232,196,.3);}
+.vista-gases .tramo.g-agente{stroke:rgba(255,159,69,.3);}
+.vista-gases .tramo.g-esp{stroke:rgba(179,157,219,.3);}
+.vista-gases .tramo.g-res{stroke:rgba(124,143,155,.26);}
+.vista-gases .tramo.sin-flujo{stroke:rgba(70,98,118,.16);stroke-dasharray:6 8;}
+.vista-gases .tramo.con-fuga{stroke:rgba(255,77,79,.42);}
+.vista-gases .tramo.cortado{stroke:rgba(255,77,79,.5);stroke-dasharray:8 8;}
+.vista-gases .union{fill:#44637a;stroke:#0b1116;stroke-width:1.5;}
+.vista-gases .flecha{fill:rgba(142,168,181,.6);}
+
+/* nodo: halo de seleccion, etiqueta y valor */
+.vista-gases .blq{cursor:pointer;}
+.vista-gases .blq-halo{fill:transparent;stroke:transparent;stroke-width:2;transition:fill .15s,stroke .15s;}
+.vista-gases .blq-hit{fill:transparent;}
+.vista-gases .blq:hover .blq-halo{fill:rgba(76,201,240,.1);stroke:var(--acento);}
+.vista-gases .blq:focus{outline:none;}
+.vista-gases .blq:focus .blq-halo{stroke:var(--acento);stroke-dasharray:4 3;}
+.vista-gases .blq.sel .blq-halo{fill:rgba(76,201,240,.14);stroke:var(--acento);stroke-width:2.5;}
+.vista-gases .blq.alerta .blq-halo{fill:rgba(255,77,79,.12);stroke:var(--alta);stroke-width:2;}
+.vista-gases .blq.inactivo{opacity:.5;}
+.vista-gases .blq.tut-foco{outline:none;}
+.vista-gases .blq.tut-foco .blq-halo{
+  fill:rgba(255,197,61,.14);stroke:var(--media);stroke-width:3;
+  animation:pulso-zona 1.5s ease-in-out infinite;
+}
+.vista-gases .blq-t{fill:var(--texto);font-size:12px;text-anchor:middle;font-weight:600;}
+.vista-gases .blq-v{fill:var(--texto-3);font-size:10.5px;text-anchor:middle;}
+.vista-gases .blq-t.izq,.vista-gases .blq-v.izq{text-anchor:start;}
+.vista-gases .blq.activo .blq-v{fill:var(--o2);}
+.vista-gases .blq.alerta .blq-v{fill:var(--alta);}
+
+/* piezas comunes */
+.vista-gases .gi-cuerpo{fill:url(#giMetal);stroke:var(--borde-2);stroke-width:1.3;}
+.vista-gases .gi-luz{fill:rgba(140,190,220,.26);}
+.vista-gases .gi-tubo-rig{fill:none;stroke:#33495c;stroke-width:4;stroke-linecap:round;}
+.vista-gases .gi-tick{stroke:rgba(142,168,181,.55);stroke-width:1;}
+.vista-gases .gi-sep{stroke:rgba(142,168,181,.3);stroke-width:1;}
+.vista-gases .gi-mini{fill:var(--texto-3);font-size:8.5px;}
+.vista-gases .gi-mini.c{text-anchor:middle;}
+
+/* cilindros */
+.vista-gases .gi-cil-cuerpo{fill:url(#giCilindrico);stroke:var(--borde-2);stroke-width:1.2;}
+.vista-gases .gi-cil-hombro{fill:url(#giCilindrico);stroke:var(--borde-2);stroke-width:1.2;}
+.vista-gases .gi-cil-cuello{fill:#33495c;stroke:var(--borde-2);stroke-width:1;}
+.vista-gases .gi-cil-brillo{fill:rgba(170,215,240,.16);}
+.vista-gases .gi-cil-txt{font-size:11px;font-weight:700;text-anchor:middle;}
+.vista-gases .gi-cil-txt.o2{fill:var(--o2);} .vista-gases .gi-cil-txt.n2o{fill:var(--n2o);}
+.vista-gases .gi-volante{fill:#2b3f50;stroke:var(--borde-2);stroke-width:1.3;}
+.vista-gases .gi-volante-r{stroke:#55738d;stroke-width:1.6;stroke-linecap:round;}
+.vista-gases .blq.activo .gi-cil-cuerpo{stroke:var(--o2);stroke-width:2;}
+
+/* manometros */
+.vista-gases .gi-man-aro{fill:#33495c;stroke:var(--borde-2);stroke-width:1;}
+.vista-gases .gi-man{fill:#f1f6f8;stroke:#0a1218;stroke-width:1;}
+.vista-gases .gi-man-aguja{stroke:#c0392b;stroke-width:1.8;stroke-linecap:round;transition:transform .5s ease-out;}
+.vista-gases .gi-man-centro{fill:#2b3e4c;}
+
+/* toma de pared */
+.vista-gases .gi-pared{fill:url(#giMetal);stroke:var(--borde-2);stroke-width:1;}
+.vista-gases .gi-pared-luz{fill:rgba(140,190,220,.26);}
+.vista-gases .gi-toma-aro{fill:#0c151c;stroke-width:1.6;}
+.vista-gases .gi-toma-aro.o2{stroke:rgba(61,220,132,.5);}
+.vista-gases .gi-toma-aro.aire{stroke:rgba(255,209,102,.5);}
+.vista-gases .gi-toma-aro.n2o{stroke:rgba(108,182,255,.5);}
+.vista-gases .gi-toma.o2{fill:var(--o2);} .vista-gases .gi-toma.aire{fill:var(--aire);}
+.vista-gases .gi-toma.n2o{fill:var(--n2o);}
+.vista-gases .gi-toma.sin-presion{fill:#2f4150;}
+.vista-gases .gi-conector{fill:#33495c;stroke:var(--borde-2);stroke-width:1;}
+
+/* regulador y valvulas de proteccion */
+.vista-gases .gi-campana{fill:#2b3f50;stroke:var(--borde-2);stroke-width:1.2;}
+.vista-gases .gi-tornillo-aj{fill:#52708a;stroke:var(--borde-2);stroke-width:.8;}
+.vista-gases .gi-diafragma{fill:rgba(140,190,220,.14);stroke:var(--borde-2);stroke-width:1.2;}
+.vista-gases .gi-vastago{stroke:#7fa3bb;stroke-width:2;stroke-linecap:round;}
+.vista-gases .gi-piloto{fill:rgba(61,220,132,.5);stroke:var(--borde-2);stroke-width:1;}
+.vista-gases .gi-piloto.alerta{fill:var(--alta);}
+.vista-gases .gi-flecha-int{fill:none;stroke:rgba(142,168,181,.8);stroke-width:1.3;stroke-linecap:round;}
+
+/* flujometros */
+.vista-gases .gi-fm-tubo{fill:url(#giVidrio);stroke:var(--borde-2);stroke-width:1;}
+.vista-gases .gi-fm-brillo{fill:rgba(180,222,245,.22);}
+.vista-gases .gi-bobina{stroke:#05090c;stroke-width:1.2;transition:cy .25s linear;}
+.vista-gases .gi-bobina.o2{fill:var(--o2);} .vista-gases .gi-bobina.aire{fill:var(--aire);}
+.vista-gases .gi-bobina.n2o{fill:var(--n2o);}
+.vista-gases .gi-perilla{fill:#2b3f50;stroke-width:1.3;}
+.vista-gases .gi-perilla.o2{stroke:rgba(61,220,132,.55);}
+.vista-gases .gi-perilla.aire{stroke:rgba(255,209,102,.55);}
+.vista-gases .gi-perilla.n2o{stroke:rgba(108,182,255,.55);}
+.vista-gases .gi-perilla-m{stroke:#8fb3c9;stroke-width:1.4;stroke-linecap:round;}
+
+/* colector, vaporizador, salida comun */
+.vista-gases .gi-boca{fill:#44637a;stroke:var(--borde-2);stroke-width:.8;}
+.vista-gases .gi-vapor-cuerpo{fill:url(#giMetal);stroke:var(--agente);stroke-opacity:.5;stroke-width:1.5;}
+.vista-gases .gi-dial{fill:#15222c;stroke:var(--agente);stroke-width:2;}
+.vista-gases .gi-dial-aguja{stroke:var(--agente);stroke-width:2.6;stroke-linecap:round;transition:transform .3s;}
+.vista-gases .gi-dial-centro{fill:var(--agente);}
+.vista-gases .gi-tick-dial{stroke:rgba(255,159,69,.7);stroke-width:1.2;}
+.vista-gases .gi-mirilla{fill:#060d12;stroke:var(--borde-2);stroke-width:1;}
+.vista-gases .gi-nivel{fill:var(--agente);opacity:.65;}
+.vista-gases .gi-brida{fill:#2b3f50;stroke:var(--borde-2);stroke-width:1.2;}
+.vista-gases .gi-boca-c{fill:#0c151c;stroke:var(--acento);stroke-width:1.6;}
+
+/* valvulas unidireccionales */
+.vista-gases .gi-valv-base{fill:#33495c;stroke:var(--borde-2);stroke-width:1;}
+.vista-gases .gi-valv-cupula{fill:url(#giCristal);stroke:rgba(200,232,246,.34);stroke-width:1.4;}
+.vista-gases .gi-valv-disco{fill:#7fa3bb;stroke:#16242e;stroke-width:1;transition:cy .18s ease-out;}
+.vista-gases .gi-valv-disco.abierta{fill:var(--acento);}
+.vista-gases .gi-valv-guia{stroke:rgba(142,168,181,.4);stroke-width:1.2;}
+
+/* paciente */
+.vista-gases .gi-cabeza{fill:rgba(255,160,150,.14);stroke:#ff9a90;stroke-width:1.5;}
+.vista-gases .gi-traquea{fill:none;stroke:#ff9a90;stroke-width:3;stroke-linecap:round;}
+.vista-gases .gi-pulmon{fill:rgba(255,120,140,.2);stroke:#ff8095;stroke-width:1.5;}
+
+/* absorbedor */
+.vista-gases .gi-tapa{fill:#3b5467;stroke:var(--borde-2);stroke-width:1;}
+.vista-gases .gi-canister{fill:url(#giCristal);stroke:rgba(200,232,246,.34);stroke-width:1.5;}
+.vista-gases .gi-cal{fill:url(#giCal);opacity:.86;}
+.vista-gases .gi-virado{fill:#8e6bb8;opacity:.92;}
+.vista-gases .gi-grano{fill:url(#giGranulo);}
+.vista-gases .gi-abrazadera{fill:#3b5467;stroke:#16242e;stroke-width:.8;}
+.vista-gases .gi-purga{fill:#2b3f50;stroke:var(--borde-2);stroke-width:1;}
+.vista-gases .gi-cristal-br{fill:rgba(220,244,255,.1);}
+
+/* fuelle */
+.vista-gases .gi-campana{fill:url(#giCristal);stroke:rgba(200,232,246,.34);stroke-width:1.5;}
+.vista-gases .gi-fuelle{fill:url(#giFuelle);stroke:var(--espirado);stroke-width:1.4;}
+.vista-gases .gi-fuelle.sin-tope{stroke:var(--alta);stroke-dasharray:4 3;}
+.vista-gases .gi-pliegue{fill:none;stroke:rgba(201,183,236,.5);stroke-width:1.1;}
+
+/* bolsa y APL */
+.vista-gases .gi-apl-base{fill:#33495c;stroke:var(--borde-2);stroke-width:1;}
+.gas-panel{display:flex;flex-direction:column;gap:10px;overflow-y:auto;}
+.bloque-capa1.banco{background:var(--fondo-3);}
+.banco .cab-bloque{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.banco-intro{font-size:var(--t-eti);color:var(--texto-3);margin:2px 0 10px;}
+.banco .ctrl{margin-bottom:9px;}
+.bg-select{
+  width:100%;font:inherit;font-size:var(--t-txt);padding:5px 8px;border-radius:var(--r);
+  background:var(--fondo-2);color:var(--texto);border:1px solid var(--borde);cursor:pointer;
+}
+.banco-aviso{border-left:3px solid var(--acento);}
+.banco-aviso.aviso{border-left-color:var(--media);}
+.banco-aviso.mal{border-left-color:var(--alta);}
+.vista-gases .blq.incompatible .gi-caja{stroke:var(--alta);stroke-width:2.4;}
+.vista-gases .gi-flush-aro{fill:#16222b;stroke:var(--borde-2);stroke-width:1.4;}
+.vista-gases .gi-flush{fill:rgba(61,220,132,.28);stroke:var(--o2);stroke-width:2.2;transition:fill .1s;}
+.vista-gases .gi-flush.activo{fill:var(--o2);filter:drop-shadow(0 0 7px var(--o2));}
+.vista-gases .gi-apl.abierta{stroke:var(--alta);stroke-width:2.2;}
+.vista-gases .gi-apl.cerrada{stroke:var(--media);stroke-width:2.2;}
+.vista-gases .gi-aplAguja{transition:transform .2s;}
+.vista-gases .gi-apl{fill:#1b2b36;stroke:var(--media);stroke-width:1.8;}
+.vista-gases .gi-apl-m{stroke:var(--media);stroke-width:1.6;stroke-linecap:round;}
+.vista-gases .gi-bolsa{fill:url(#giBolsa);stroke:var(--espirado);stroke-width:1.5;}
+.vista-gases .gi-bolsa-br{fill:rgba(230,218,255,.2);}
+
+/* evacuacion */
+.vista-gases .gi-agss-ind{fill:rgba(61,220,132,.5);stroke:var(--borde-2);stroke-width:.8;}
+.vista-gases .gi-rejilla{fill:none;stroke:rgba(142,168,181,.4);stroke-width:1.4;}
+
+@media (max-width:1100px){
+  .pane-cuerpo{grid-template-columns:1fr;grid-template-rows:minmax(300px,1fr) auto;}
+  .gas-panel{overflow:visible;max-height:none;}
+}
