@@ -284,6 +284,7 @@ SIM.ui = (function () {
     escenario: null,
     variante: null,
     zonaModulo: null,
+    vistaExp: 'esquema',       // 'esquema' | 'equipo'
     registro: [],
     accionesHechas: [],
     revelados: {},
@@ -358,7 +359,7 @@ SIM.ui = (function () {
           '</div>' +
         '</div>' +
 
-        '<div class="inicio2-der">' + SIM.maquinaVista.markup('svgPortada') + '</div>' +
+        '<div class="inicio2-der">' + SIM.maquinaPortada.markup('svgPortada') + '</div>' +
       '</div>';
 
     $('#mEntreno', raiz).addEventListener('click', function () { acciones.listaEscenarios('entrenamiento'); });
@@ -409,6 +410,37 @@ SIM.ui = (function () {
     $('#btnVolverInicio', raiz).addEventListener('click', acciones.inicio);
   }
 
+  /* Dos dibujos para el mismo recorrido.
+     El esquema de frente ensena mejor la arquitectura: nada se tapa y
+     cada modulo tiene su sitio. El equipo en volumen se parece mas a lo
+     que el estudiante va a encontrar en el quirofano. Las dos usan los
+     mismos identificadores de zona, asi que el resto de la pantalla no
+     se entera de cual esta puesta. */
+  function vistaExpMod() {
+    return S.vistaExp === 'equipo' ? SIM.maquinaPortada : SIM.maquinaVista;
+  }
+
+  function dibujoExp() {
+    return S.vistaExp === 'equipo'
+      ? SIM.maquinaPortada.markup('svgVista', { giro: 0, picado: 3, zonas: true })
+      : SIM.maquinaVista.markup('svgVista');
+  }
+
+  function cambiarVistaExp(cual) {
+    if (S.vistaExp === cual) { return; }
+    S.vistaExp = cual;
+    var caja = document.getElementById('vistaCaja');
+    if (!caja) { return; }
+    caja.innerHTML = dibujoExp();
+    S.refs.svgVista = $('#svgVista', caja);
+    vistaExpMod().preparar(S.refs.svgVista, abrirModulo, pasarZona);
+    vistaExpMod().marcar(S.refs.svgVista, S.zonaModulo, null);
+    $$('#conmVista button').forEach(function (b) {
+      b.classList.toggle('on', b.getAttribute('data-v') === cual);
+    });
+    pasarZona(null);
+  }
+
   function renderMaquina(raiz, acciones) {
     raiz.innerHTML =
       '<div class="exp">' +
@@ -419,13 +451,17 @@ SIM.ui = (function () {
             '<span class="barra-nom" id="expTitulo">Maquina de anestesia generica</span>' +
           '</div>' +
           '<div class="barra-der">' +
+            '<div class="conm" id="conmVista" role="group" aria-label="Tipo de dibujo">' +
+              '<button data-v="esquema"' + (S.vistaExp !== 'equipo' ? ' class="on"' : '') + '>Esquema</button>' +
+              '<button data-v="equipo"' + (S.vistaExp === 'equipo' ? ' class="on"' : '') + '>Equipo</button>' +
+            '</div>' +
             '<button class="btn-sec peq" id="btnRecorrido">Recorrido del gas</button>' +
             '<button class="btn-sec peq oculto" id="btnTodaMaquina">Ver la maquina completa</button>' +
           '</div>' +
         '</header>' +
         '<div class="exp-cuerpo" id="expCuerpo">' +
           '<section class="exp-maquina">' +
-            '<div class="vista-caja" id="vistaCaja">' + SIM.maquinaVista.markup('svgVista') + '</div>' +
+            '<div class="vista-caja" id="vistaCaja">' + dibujoExp() + '</div>' +
             '<p class="vista-pie" id="vistaPie">Pasa el cursor por la maquina y pulsa una parte para entrar.</p>' +
           '</section>' +
           '<section class="exp-detalle" id="expDetalle"></section>' +
@@ -446,7 +482,11 @@ SIM.ui = (function () {
       modalCuerpo: $('#modalCuerpo', raiz)
     };
 
-    SIM.maquinaVista.preparar(S.refs.svgVista, abrirModulo, pasarZona);
+    vistaExpMod().preparar(S.refs.svgVista, abrirModulo, pasarZona);
+
+    $$('#conmVista button', raiz).forEach(function (b) {
+      b.addEventListener('click', function () { cambiarVistaExp(b.getAttribute('data-v')); });
+    });
 
     $('#btnVolverInicio', raiz).addEventListener('click', acciones.inicio);
     $('#btnRecorrido', raiz).addEventListener('click', abrirRecorrido);
@@ -476,7 +516,7 @@ SIM.ui = (function () {
     if (cuerpo) cuerpo.classList.toggle('con-modulo', !!id);
     var btnTodo = document.getElementById('btnTodaMaquina');
     if (btnTodo) btnTodo.classList.toggle('oculto', !id);
-    SIM.maquinaVista.marcar(S.refs.svgVista, id, null);
+    vistaExpMod().marcar(S.refs.svgVista, id, null);
     pasarZona(null);
 
     if (!id) {
