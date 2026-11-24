@@ -4,6 +4,11 @@ Que se construyo en cada ensayo, que fallo y por que se corrigio. Lo mas recient
 
 ## Ensayo 4 - la estetica
 
+> Copia del Ensayo 3 con la estetica rehecha. El Ensayo 3 sigue intacto en `ENSAYOS\ENSAYO_3` y es
+> el que esta publicado. Si esta version no convence, se descarta la carpeta entera: la logica, los
+> modelos, los escenarios y los tutoriales son identicos en las dos.
+
+## Que cambio en el Ensayo 4
 
 **La paleta, rehecha sobre fuentes y no sobre gusto.** El aspecto de plantilla venia de dos cosas: el
 negro azulado y un acento saturado repartido por botones, chips y bordes. Se corrigieron las dos.
@@ -101,6 +106,91 @@ dibujan desde el CSS: una guia hundida y una perilla redonda y clara, con el **c
 identificacion del gas que regula** en el anillo, el mismo de la particula en el circuito y de la
 etiqueta en la leyenda. La perilla del vaporizador lleva el color del agente; la de la APL, que no
 regula un gas, va neutra.
+
+**La portada muestra la maquina en perspectiva.** Es un dibujo aparte (`js/maquinaPortada.js`), no
+un reemplazo: la vista frontal de `maquinaVista.js` sigue siendo la que ensena, porque ahi nada se
+tapa y cada modulo es clicable. En la portada el trabajo es otro, que se reconozca como un equipo y
+no como un esquema.
+
+No esta dibujada a mano en perspectiva. La maquina se define como cajas y cilindros con medidas en
+centimetros y una proyeccion los convierte en poligonos; cada cara recibe la luz segun su normal,
+con una sola fuente. Los dos errores que delatan un dibujo en perspectiva hecho a ojo, las lineas de
+fuga que no concuerdan y las caras iluminadas de forma incoherente, quedan descartados por
+construccion. Lo unico que se dibuja en el plano son las mangueras, porque son organicas.
+
+Un detalle de oficio que costo encontrar: ordenar todas las caras por profundidad media no funciona.
+Una cara grande abarca mucho fondo, su media queda cerca y termina tapando las piezas que tiene
+encima; el vaporizador y la pantalla del ventilador desaparecian. Las piezas se agrupan ahora en
+capas con un orden fijo y solo se ordena dentro de cada capa.
+
+El primer intento puso el equipo sobre un panel claro, como una foto de catalogo. Partia la
+pantalla en dos: medio lado claro y medio oscuro. Ahora la portada es una sola pieza, con un unico
+fondo de extremo a extremo y el equipo iluminado sobre el, separado del fondo por un halo muy tenue
+y no por un borde.
+
+**Lo que hace que se reconozca.** El detalle no es adorno: es lo que diferencia un dibujo de una
+maquina de anestesia de un dibujo de un carro con cajones. Estan los dos vaporizadores con su dial
+graduado y la franja de color del agente, el banco de flujometros con su escala impresa, sus
+flotadores y la perilla de O2 mas grande y estriada que las otras (que es un requisito de seguridad,
+no un capricho), los manometros de red y de cilindro, la purga de O2, el absorbedor con la cal de
+abajo ya virada, el fuelle con sus pliegues, las valvulas unidireccionales, la valvula APL, la bolsa
+reservorio y los cilindros de reserva en sus yugos. Y rotulos de verdad: un equipo real esta lleno
+de letreros, y su ausencia es buena parte de lo que hace que un dibujo parezca un juguete. El texto
+se situa sobre el plano de cada superficie, asi que se inclina con ella.
+
+**Superficies curvas sin facetas.** Un cilindro hecho de tiras planas se ve facetado: cada tira
+tiene su color y se notan las bandas, y si ademas se le dibuja el contorno a cada una, la pieza
+parece una pina. Los cuerpos de revolucion grandes (cilindros de gas, absorbedor, fuelle, bolsa) se
+dibujan ahora como una sola silueta rellena con un degradado cuyos topes salen de iluminar la
+superficie angulo por angulo. Y el contorno fino solo se traza en caras planas.
+
+**Las pantallas corren.** Las trazas del monitor y del ventilador se desplazan como en un equipo
+encendido. El truco es dibujar dos pantallas de onda y correrlas exactamente una pantalla: si la
+onda lleva un numero entero de ciclos por pantalla, el salto al reiniciar no se ve. El
+desplazamiento se calcula en la direccion que tiene el eje de la pantalla ya proyectado, para que la
+traza corra sobre el cristal y no sobre la imagen. Se detiene con `prefers-reduced-motion`.
+
+**Un fallo que costo encontrar: el tubo del N2O no aparecia.** Mismo problema de profundidad media
+que ya habia dado con el vaporizador, pero dentro de una capa. El panel oscuro de los flujometros es
+ancho y abarca mucho fondo, asi que su profundidad media quedaba por delante del tubo de la derecha
+y lo tapaba. La regla, ahora explicita en el codigo: lo que esta montado sobre una cara va en una
+capa posterior a esa cara.
+
+**La APL, donde se entiende.** Estaba dibujada pero escondida tras el absorbedor. Va encima del
+brazo de la bolsa, que es su sitio: esa es la via de la ventilacion manual y lo que no cabe en la
+bolsa sale por ahi. Puesta en otro lado no se entiende para que sirve. Lleva falda graduada, perilla
+estriada e indice rojo.
+
+**Los cilindros, sobre una sola base.** Antes cada uno colgaba por su cuenta. Ahora comparten base,
+placa de respaldo y montantes, y cada uno lleva dos abrazaderas que se ven pasar por delante.
+
+**Dos dibujos para el mismo recorrido.** En *Conocer la maquina* hay ahora un conmutador entre el
+esquema de frente de siempre y el equipo en volumen, este ultimo puesto casi de frente para que nada
+se tape. Los dos responden igual: se senala una parte, se realza y se entra al modulo. Cada cara del
+dibujo en volumen lleva el identificador de su zona, el mismo que usa el esquema, asi que el resto
+de la pantalla no se entera de cual de los dos esta puesto. El esquema sigue siendo mejor para ver
+la arquitectura; el equipo se parece mas a lo que el estudiante encontrara en el quirofano, y
+elegir es del estudiante. Se anadio ademas la unidad de evacuacion al modelo, que faltaba, para que
+las ocho zonas existan en los dos dibujos.
+
+**La evacuacion, conectada.** En la primera version quedo como un bote pegado al mueble, sin
+manguera a ninguna parte, y asi no se entiende que es. Ahora es un bloque receptor con tubo
+reservorio, flotador de caudal y banda amarilla, y sobre todo con la manguera de transferencia que
+baja desde la APL por debajo de la encimera. Una pieza de un circuito sin la conexion que la
+alimenta no se lee como pieza del circuito.
+
+**Chaflanes.** Las piezas grandes no tienen el canto vivo: las caras se meten hacia dentro y entre
+ellas queda una tira estrecha con la normal intermedia. El ojo lee el brillo de esa tira antes que
+la forma, y es lo que separa un canto de equipo de un corte de cartulina. El canto no es una sola tira
+sino tres, con las normales recorriendo el cuarto de circunferencia, que es lo que lo hace leer como
+un radio y no como un bisel.
+
+**El `index.html` ya no lista los archivos a pelo.** Un cargador los pide con un numero de version
+pegado a la direccion (`js/ui.js?v=2026-11-22`), y al terminar comprueba que cada modulo traiga las
+funciones que la interfaz usa. Esto nacio de un fallo real al publicar: el navegador sirvio el
+`ui.js` nuevo junto al `maquinaVista.js` que tenia guardado, y la pagina no se vio vieja, se rompio,
+sin decir por que. Ahora, si el conjunto no cuadra, lo dice en pantalla y explica que hacer. En
+`PUBLICAR.md` esta el procedimiento completo de publicacion.
 
 **Lo que no cambio:** modelos, perfil, alarmas, escenarios, variantes, sorteo, tutoriales, pruebas y
 textos. La suite completa se volvio a pasar sobre esta carpeta con el mismo resultado.

@@ -60,6 +60,16 @@ el color de identificación del gas que regulan.
 
 Todas las combinaciones de texto y fondo cumplen el criterio AA de la WCAG.
 
+La portada muestra la máquina en perspectiva. No está dibujada a mano: se define como cajas y
+cilindros con medidas en centímetros y una proyección los convierte en polígonos, con el sombreado
+de cada cara calculado a partir de su orientación frente a una sola fuente de luz. Las trazas de las
+pantallas se desplazan, como en un equipo encendido, y se detienen si el sistema pide movimiento
+reducido.
+
+En **Conocer la máquina** se puede elegir entre dos dibujos: el esquema de frente, que enseña mejor
+la arquitectura porque nada se tapa, y el equipo en volumen, que se parece más a lo que se encuentra
+en el quirófano. Los dos responden igual: se señala una parte, se realza y se entra al módulo.
+
 ## Cómo está construido
 
 Cada dato que el simulador muestra lleva una etiqueta de evidencia, y se puede consultar desde la
@@ -92,7 +102,8 @@ js/modelo.js        fórmulas físicas
 js/maquina.js       estado y simulación
 js/alarmas.js       condiciones de alarma y prioridades
 js/escenarios.js    las seis fallas, sus variantes y sus acciones
-js/maquinaVista.js  vista completa de la máquina
+js/maquinaVista.js  vista de frente de la máquina, la que enseña
+js/maquinaPortada.js dibujo en perspectiva: portada y modo equipo
 js/esquema.js       circuito interno de gases
 js/monitor.js       curvas de presión y capnografía
 js/tutorial.js      guiones del entrenamiento guiado

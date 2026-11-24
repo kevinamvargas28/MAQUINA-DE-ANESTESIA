@@ -477,3 +477,53 @@ medicinales distintos segun el pais, asi que el trabajo debe declarar cual adopt
 **El resto de la paleta** (grises, fondos, jerarquia) es decision de diseno sin respaldo documental.
 Lo unico comprobado objetivamente es el contraste: todas las combinaciones de texto y fondo cumplen
 el criterio AA de la WCAG, 4,5:1 para texto normal.
+
+## Maquina de la portada, en perspectiva (Ensayo 4)
+
+La portada muestra la maquina en vista diagonal. Es una ilustracion: no interviene en ningun modelo
+ni en ningun escenario, y no sustituye a la vista frontal, que es la que se usa para ensenar porque
+ahi nada se tapa y cada modulo es clicable.
+
+**Proporciones del equipo.** [P]. Carro de 80 cm de frente por 72 de fondo, encimera a 90 cm,
+cabezal de 46 cm de alto y monitor sobre brazo a unos 155 cm. Son medidas tipicas de una estacion de
+trabajo de anestesia, elegidas para que la silueta resulte creible; no provienen de la ficha tecnica
+de ningun equipo. Ningun dato del simulador depende de ellas.
+
+**Sistema de evacuacion (AGSS).** [P]. Se dibuja como un bloque receptor colgado del carro, con
+tubo reservorio, flotador indicador de caudal, banda amarilla de aviso y la manguera de
+transferencia que baja desde la APL. La configuracion concreta varia mucho entre equipos (hay
+sistemas abiertos y cerrados, activos y pasivos); lo que se representa es el esquema general.
+
+**Posicion de la valvula APL.** [I]. Se dibuja sobre el brazo de la bolsa reservorio, que es la
+configuracion habitual del circuito circular: la APL limita la presion de la via manual. La altura y
+el tamano exactos son de la ilustracion.
+
+**Cilindros de reserva en bastidor lateral.** [P]. En la mayoria de los equipos los cilindros de
+reserva van colgados en yugos en la parte trasera. Aqui se dibujan en un bastidor al costado
+izquierdo, con placa, estante y correas. El motivo es que desde este angulo, montados atras,
+quedarian ocultos tras el carro y no se verian sus colores de identificacion, que es justo lo que
+vale la pena mostrar. Es una licencia de la ilustracion, no una descripcion de un equipo.
+
+**Disposicion de los componentes.** [P]. Flujometros, vaporizador y pantalla del ventilador en el
+frente del cabezal; absorbedor y fuelle colgados al frente bajo la encimera; cilindros de reserva en
+yugos en la parte trasera, asomando por el costado izquierdo. Es una disposicion generica y
+reconocible, no la de un modelo concreto. Los cilindros se dibujaron asomados a proposito, para que
+se vean sus colores de identificacion; en muchos equipos quedarian ocultos desde este angulo.
+
+**Como esta construida.** La maquina se define como cajas y cilindros con medidas en centimetros, y
+una proyeccion en perspectiva los convierte en poligonos; el sombreado de cada cara sale de su
+normal frente a una sola fuente de luz. No se dibujo a mano en perspectiva. Esto importa porque los
+errores tipicos del dibujo en perspectiva a ojo (lineas de fuga que no concuerdan, caras iluminadas
+de forma incoherente) quedan descartados por construccion.
+
+**Curvas en las pantallas.** [P]. Las trazas del monitor y del ventilador son formas de onda
+decorativas, no provienen del modelo. Se dibujaron con la morfologia correcta (meseta inspiratoria
+en la presion, meseta algo ascendente en la capnografia) y con los colores ya documentados, para que
+no ensenen nada falso.
+
+**Fondo de la portada.** [P]. La portada comparte un unico fondo con el resto de la aplicacion. Un
+primer intento puso el equipo sobre un panel claro y partia la pantalla en dos.
+
+**Rotulos del dibujo.** [P]. Los textos que aparecen sobre el equipo (nombres de los gases, agentes,
+cifras del monitor) son genericos y de ejemplo. No reproducen la rotulacion de ningun fabricante, y
+las cifras no provienen del modelo: son un estado plausible, no una medicion.

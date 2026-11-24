@@ -22,15 +22,16 @@
    AL PUBLICAR UNA VERSION NUEVA: cambiar la fecha de VERSION. Es lo
    unico que hay que tocar en este archivo. Ver PUBLICAR.md.             */
 (function () {
-  var VERSION = '2026-11-22';
+  var VERSION = '2026-11-23';
 
   var MODULOS = ['perfil', 'modelo', 'maquina', 'alarmas', 'escenarios', 'modulos',
-                 'maquinaVista', 'esquema', 'monitor', 'tutorial', 'ui'];
+                 'maquinaVista', 'maquinaPortada', 'esquema', 'monitor', 'tutorial', 'ui'];
 
   /* Funciones que la interfaz usa de cada modulo. Si falta alguna, lo que
      se cargo no es el conjunto que va junto. */
   var EXIGE = {
     maquinaVista: ['markup', 'vineta'],
+    maquinaPortada: ['markup'],
     esquema:      ['markup'],
     monitor:      ['dibujarPar'],
     ui:           ['renderInicio', 'renderSimulacion', 'refrescar'],
