@@ -163,8 +163,32 @@ code{font-family:ui-monospace,"Cascadia Code",Consolas,monospace;font-size:var(-
 .modo-fila:hover .modo-fila-flecha{stroke:var(--acento);transform:translateY(-50%) translateX(3px);}
 .inicio2-izq .aviso{margin:20px 0 0;}
 .inicio2-pie{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+/* Conmutador de dos posiciones para elegir el dibujo del explorador. */
+.conm{display:inline-flex;border-radius:var(--r);overflow:hidden;background:var(--fondo-3);}
+.conm button{
+  all:unset;cursor:pointer;padding:5px 11px;font-size:var(--t-eti);color:var(--texto-2);
+  letter-spacing:.03em;transition:background .15s,color .15s;
+}
+.conm button:hover{background:#31353a;color:var(--texto);}
+.conm button.on{background:var(--borde-2);color:var(--texto);font-weight:600;}
+.conm button:focus-visible{box-shadow:inset 0 0 0 2px var(--acento-sua);}
+
+/* Piezas senalables del equipo en volumen. El realce es de luz, no de
+   contorno: un contorno sobre cada cara dibujaria la malla. */
+.maq-portada text{pointer-events:none;}
+.maq-portada .mp-pieza{cursor:pointer;}
+.maq-portada .mp-sobre{filter:brightness(1.3) saturate(1.08);}
+.maq-portada .mp-activo{filter:brightness(1.18) saturate(1.05);}
+.maq-portada .mp-fuera{opacity:.42;}
+
+/* La portada es una sola pieza: un unico fondo de extremo a extremo.
+   El equipo no va sobre un panel propio, va iluminado sobre el mismo
+   grafito, con un halo muy tenue que lo separa del fondo sin dibujar
+   un borde. Dos fondos distintos en una misma pantalla la parten. */
 .inicio2-der{
   display:flex;align-items:center;justify-content:center;min-height:0;height:100%;
+  box-sizing:border-box;padding:clamp(6px,1.4vh,18px);
+  background:radial-gradient(64% 56% at 50% 46%,rgba(255,255,255,.055) 0%,rgba(255,255,255,0) 72%);
 }
 .inicio2-der svg{height:100%;width:100%;max-height:100%;display:block;}
 @media (max-width:900px){
@@ -1147,3 +1171,116 @@ body.con-tut .col-izq{padding-bottom:210px;}
   .pane-cuerpo{grid-template-columns:1fr;grid-template-rows:minmax(300px,1fr) auto;}
   .gas-panel{overflow:visible;max-height:none;}
 }
+
+/* =====================================================================
+   Tamanos de pantalla
+   ---------------------------------------------------------------------
+   Las reglas cuelgan de las clases que pone pantalla.js en <html>, no de
+   un @media. Asi el boton que fuerza un modo puede contradecir al ancho;
+   un @media no se deja contradecir por un boton.
+
+   En telefono el escenario no cabe de una vez. La alternativa a estas
+   secciones era un scroll de tres metros, y ahi se pierde lo importante:
+   no la informacion, sino la relacion entre el sintoma y la accion, que
+   es justo lo que el simulador ensena. Las alarmas quedan fuera del
+   reparto y se ven siempre.
+   ===================================================================== */
+
+.secbar{display:none;}
+
+/* El @media de 1080 px suelta la altura de .sim para que la pagina
+   entera haga scroll. En telefono eso dejaba la barra de secciones por
+   debajo del borde inferior, donde no se ve. Aqui se recupera la altura
+   fija: dvh en vez de vh, porque en el movil la barra del navegador
+   aparece y desaparece y vh no se entera. */
+.es-telefono .sim{height:100vh;height:100dvh;min-height:0;}
+
+.es-telefono .secbar{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+  background:var(--borde);flex:0 0 auto;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+.es-telefono .secbar button{
+  all:unset;box-sizing:border-box;cursor:pointer;text-align:center;
+  padding:11px 3px;min-height:46px;background:var(--fondo-2);
+  color:var(--texto-3);font-size:var(--t-eti);letter-spacing:.02em;
+}
+.es-telefono .secbar button.on{
+  background:var(--fondo-3);color:var(--texto);font-weight:600;
+  box-shadow:inset 0 2px 0 var(--acento);
+}
+.es-telefono .secbar button:focus-visible{box-shadow:inset 0 0 0 2px var(--acento-sua);}
+
+/* una sola columna, y solo la seccion elegida */
+.es-telefono .lienzo2{
+  display:block;overflow-y:auto;padding:10px 10px 14px;gap:0;
+}
+.es-telefono .col-der{overflow:visible;min-height:0;}
+.es-telefono .col-izq{gap:8px;}
+.es-telefono .sim [data-sec]{display:none;}
+.es-telefono .sim[data-sec-activa="maquina"]  [data-sec="maquina"]{display:flex;}
+.es-telefono .sim[data-sec-activa="estado"]   [data-sec="estado"]{display:block;}
+.es-telefono .sim[data-sec-activa="curvas"]   [data-sec="curvas"]{display:block;}
+.es-telefono .sim[data-sec-activa="acciones"] [data-sec="acciones"]{display:block;}
+.es-telefono .banda-alarmas:not(:empty){margin-bottom:10px;}
+
+/* cabecera: el reloj se partia en tres lineas y el perfil quedaba
+   estrangulado contra el borde */
+.es-telefono .barra{flex-wrap:wrap;gap:6px 8px;padding:7px 10px;}
+.es-telefono .barra-nom{font-size:var(--t-txt);}
+/* El grupo de la derecha deja de ser una caja para que sus piezas se
+   puedan repartir entre las filas de la cabecera: salir, reloj y audio
+   caben juntos arriba, y el titulo y la variante van debajo. Asi la
+   cabecera ocupa tres filas en vez de cuatro. */
+.es-telefono .barra-der{display:contents;}
+.es-telefono #btnVolver{order:1;}
+.es-telefono .reloj{order:2;margin-left:auto;white-space:nowrap;}
+.es-telefono #btnPausaAudio{order:3;font-size:var(--t-eti);padding:7px 9px;}
+.es-telefono .barra-tit{order:4;flex:1 1 100%;}
+.es-telefono .sel-var{order:5;flex:1 1 100%;display:flex;align-items:center;gap:8px;}
+.es-telefono .sel-var select{flex:1 1 auto;width:auto;}
+.es-telefono .perfil-chip{display:none;}
+
+/* tamanos de toque: un dedo no acierta un boton de 24 px */
+.es-telefono .accion{min-height:54px;}
+.es-telefono .btn-sec,
+.es-telefono .btn-capa2,
+.es-telefono .btn-capa3,
+.es-telefono .btn-esc{min-height:42px;}
+.es-telefono .ctrl input[type=range]{height:32px;}
+.es-telefono .ctrl input[type=range]::-webkit-slider-thumb{
+  width:26px;height:26px;margin-top:-9.5px;
+}
+.es-telefono .ctrl input[type=range]::-moz-range-thumb{width:26px;height:26px;}
+.es-telefono .variables{grid-template-columns:repeat(2,minmax(0,1fr));}
+.es-telefono .curvas-par{grid-template-columns:1fr;}
+
+/* portada: la maquina primero y acotada, para que al abrir se vea el
+   equipo y no haya que adivinar que hay un dibujo mas abajo */
+.es-telefono .inicio2{
+  display:flex;flex-direction:column;gap:12px;padding:12px 14px 20px;overflow-y:auto;
+}
+/* align-items:start viene del @media de 900 px y ahi era para una
+   rejilla; en esta columna flexible encoge los hijos al ancho de su
+   contenido y el dibujo se iba al borde izquierdo. */
+.es-telefono .inicio2{align-items:stretch;}
+.es-telefono .inicio2-der{order:0;flex:0 0 auto;height:27vh;min-height:168px;padding:0;}
+.es-telefono .inicio2-izq{order:1;min-height:0;}
+.es-telefono .inicio2-tit{font-size:30px;}
+/* el hueco de la derecha es el de la flecha: sin el, se pisa el texto */
+.es-telefono .modo-fila{padding:12px 32px 12px 0;}
+
+/* tableta: una columna holgada, sin trocear nada */
+.es-tableta .lienzo2{display:block;overflow-y:auto;}
+.es-tableta .col-izq{margin-bottom:10px;}
+.es-tableta .col-der{overflow:visible;}
+
+/* En una sola columna la caja de la maquina se queda sin altura
+   definida, y entonces el dibujo, que pide el 100% de ella, se sale y se
+   mete por debajo de lo que viene despues. Se le fija la altura. */
+.es-tableta .vista-caja.chica{height:46vh;min-height:300px;}
+.es-telefono .vista-caja.chica{height:42vh;min-height:250px;}
+.vista-caja{overflow:hidden;}
+
+/* el boton que fija el modo */
+.btn-modo{white-space:nowrap;}
