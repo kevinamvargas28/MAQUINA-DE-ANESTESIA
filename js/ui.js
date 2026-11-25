@@ -285,6 +285,7 @@ SIM.ui = (function () {
     variante: null,
     zonaModulo: null,
     vistaExp: 'esquema',       // 'esquema' | 'equipo'
+    secTel: 'maquina',         // seccion visible en modo telefono
     registro: [],
     accionesHechas: [],
     revelados: {},
@@ -356,6 +357,7 @@ SIM.ui = (function () {
           '<div class="inicio2-pie">' +
             '<button class="btn-sec peq" id="btnPerfil">Perfil de la maquina</button>' +
             '<button class="btn-sec peq" id="btnSupuestos">Supuestos sin validar</button>' +
+            '<button class="btn-sec peq btn-modo" id="btnModo">' + SIM.pantalla.etiqueta() + '</button>' +
           '</div>' +
         '</div>' +
 
@@ -365,6 +367,20 @@ SIM.ui = (function () {
     $('#mEntreno', raiz).addEventListener('click', function () { acciones.listaEscenarios('entrenamiento'); });
     $('#mPractica', raiz).addEventListener('click', function () { acciones.listaEscenarios('practica'); });
     $('#mMaquina', raiz).addEventListener('click', acciones.maquina);
+
+    /* El automatico acierta casi siempre; el boton es para cuando no:
+       una tableta a medio camino, un telefono en horizontal donde si
+       cabe la vista completa, o ensenar la version de telefono desde un
+       computador. La eleccion se recuerda. */
+    var bm = $('#btnModo', raiz);
+    bm.addEventListener('click', function () {
+      SIM.pantalla.siguiente();
+      bm.textContent = SIM.pantalla.etiqueta();
+    });
+    SIM.pantalla.alCambiar(function () {
+      var b = document.getElementById('btnModo');
+      if (b) { b.textContent = SIM.pantalla.etiqueta(); }
+    });
     $('#btnPerfil', raiz).addEventListener('click', mostrarPerfil);
     $('#btnSupuestos', raiz).addEventListener('click', mostrarSupuestos);
   }
@@ -590,6 +606,25 @@ SIM.ui = (function () {
   /* ================================================================ */
   /* PANTALLA DE ESCENARIO                                             */
   /* ================================================================ */
+  var SECCIONES = [
+    { id: 'maquina',  et: 'Maquina' },
+    { id: 'estado',   et: 'Estado' },
+    { id: 'curvas',   et: 'Curvas' },
+    { id: 'acciones', et: 'Que haces' }
+  ];
+
+  function irASeccion(id) {
+    S.secTel = id;
+    var sim = document.querySelector('.sim');
+    if (sim) { sim.setAttribute('data-sec-activa', id); }
+    $$('#secBar button').forEach(function (b) {
+      b.classList.toggle('on', b.getAttribute('data-ir') === id);
+    });
+    window.scrollTo(0, 0);
+    var c = document.querySelector('.lienzo2');
+    if (c) { c.scrollTop = 0; }
+  }
+
   function renderSimulacion(raiz, esc, modo) {
     var entrenando = modo === 'entrenamiento';
     var vr = S.variante;
@@ -620,7 +655,7 @@ SIM.ui = (function () {
         '</header>' +
 
         '<div class="lienzo2">' +
-          '<section class="col-izq" id="colIzq">' +
+          '<section class="col-izq" id="colIzq" data-sec="maquina">' +
             '<div class="vista-caja chica" id="vistaCaja">' + SIM.maquinaVista.markup('svgVista') + '</div>' +
             '<p class="vista-pie" id="vistaPie">La maquina completa. Pulsa una parte para consultarla.</p>' +
             '<div class="controles" id="controles"></div>' +
@@ -629,7 +664,7 @@ SIM.ui = (function () {
           '<section class="col-der">' +
             '<div class="banda-alarmas" id="bandaAlarmas"></div>' +
 
-            '<div class="bloque-capa1">' +
+            '<div class="bloque-capa1" data-sec="estado">' +
               '<div class="cab-bloque"><h3>Que ocurre</h3></div>' +
               '<p class="sintoma" id="sintoma">' + sintoma + '</p>' +
               '<div class="acciones-capa">' +
@@ -639,12 +674,12 @@ SIM.ui = (function () {
               '</div>' +
             '</div>' +
 
-            '<div class="bloque-capa1">' +
+            '<div class="bloque-capa1" data-sec="estado">' +
               '<div class="cab-bloque"><h3>Variables</h3></div>' +
               '<div class="variables" id="variables"></div>' +
             '</div>' +
 
-            '<div class="bloque-capa1" id="curvasMini">' +
+            '<div class="bloque-capa1" id="curvasMini" data-sec="curvas">' +
               '<div class="cab-bloque"><h3>Curvas</h3>' +
                 '<span class="cab-nota">la banda verde es el rango normal del perfil</span></div>' +
               '<div class="curvas-par">' +
@@ -661,17 +696,29 @@ SIM.ui = (function () {
               '</div>' +
             '</div>' +
 
-            '<div class="bloque-capa1">' +
+            '<div class="bloque-capa1" data-sec="acciones">' +
               '<div class="cab-bloque"><h3>Que haces</h3></div>' +
               '<div class="acciones" id="acciones"></div>' +
             '</div>' +
 
-            '<div class="bloque-capa1">' +
+            '<div class="bloque-capa1" data-sec="acciones">' +
               '<div class="cab-bloque"><h3>Registro</h3></div>' +
               '<ol class="registro" id="registro"><li class="vacio">Todavia no has hecho nada.</li></ol>' +
             '</div>' +
           '</section>' +
         '</div>' +
+
+        /* En telefono la pantalla no cabe de una vez. En vez de un
+           scroll larguisimo donde pierdes de vista el sintoma justo
+           cuando eliges la accion, se reparte en secciones y esta barra
+           salta entre ellas. Las alarmas quedan fuera del reparto: se
+           ven siempre, porque son lo que no te puedes perder. */
+        '<nav class="secbar" id="secBar" aria-label="Secciones">' +
+          SECCIONES.map(function (sc, i) {
+            return '<button data-ir="' + sc.id + '"' + (i === 0 ? ' class="on"' : '') +
+                   '><span>' + sc.et + '</span></button>';
+          }).join('') +
+        '</nav>' +
 
         '<div class="modal oculto" id="modal">' +
           '<div class="modal-caja"><button class="cerrar" id="cerrarModal" aria-label="Cerrar">&times;</button>' +
@@ -679,6 +726,8 @@ SIM.ui = (function () {
         '</div>' +
         '<div class="retro oculto" id="retro"></div>' +
       '</div>';
+
+    $('.sim', raiz).setAttribute('data-sec-activa', S.secTel || 'maquina');
 
     S.refs = {
       svgVista: $('#svgVista', raiz),
@@ -697,6 +746,10 @@ SIM.ui = (function () {
       reloj: $('#reloj', raiz),
       controles: $('#controles', raiz)
     };
+
+    $$('#secBar button', raiz).forEach(function (b) {
+      b.addEventListener('click', function () { irASeccion(b.getAttribute('data-ir')); });
+    });
 
     SIM.maquinaVista.preparar(S.refs.svgVista, consultarZona, pasarZonaSim);
     renderControles();
@@ -949,6 +1002,9 @@ SIM.ui = (function () {
   }
 
   function reloj(seg) {
+    /* Nunca por debajo de cero: con un valor negativo, el relleno de
+       ceros producia textos como 0-1:0-1 en vez de 00:00. */
+    seg = Math.max(0, seg || 0);
     var m = Math.floor(seg / 60), s = Math.floor(seg % 60);
     return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
   }

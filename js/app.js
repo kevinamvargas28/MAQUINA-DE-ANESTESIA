@@ -72,7 +72,11 @@
 
   function bucleMaquina(ahora) {
     if (!corriendo || S.pantalla !== 'maquina') return;
-    var dt = Math.min(0.1, (ahora - ultimo) / 1000);
+    /* El sello de requestAnimationFrame es el del comienzo del
+       fotograma, que puede ser anterior al performance.now() con el que
+       se arranco. Sin el maximo, el primer dt sale negativo y el reloj
+       arranca marcando 0-1:0-1. */
+    var dt = Math.max(0, Math.min(0.1, (ahora - ultimo) / 1000));
     ultimo = ahora;
     estado.t += dt;
     S.tSim = estado.t;
@@ -160,7 +164,11 @@
 
   function bucle(ahora) {
     if (!corriendo || S.pantalla !== 'escenario') return;
-    var dt = Math.min(0.1, (ahora - ultimo) / 1000);
+    /* El sello de requestAnimationFrame es el del comienzo del
+       fotograma, que puede ser anterior al performance.now() con el que
+       se arranco. Sin el maximo, el primer dt sale negativo y el reloj
+       arranca marcando 0-1:0-1. */
+    var dt = Math.max(0, Math.min(0.1, (ahora - ultimo) / 1000));
     ultimo = ahora;
 
     estado.t += dt;
