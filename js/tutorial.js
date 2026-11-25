@@ -1233,6 +1233,27 @@ SIM.tutorial = (function () {
     est.caja = c;
 
     hacerArrastrable(c);
+
+    /* El asa pliega la tarjeta. En el telefono la guia tapaba la barra
+       de secciones y no se podia cambiar de seccion para seguir el
+       entrenamiento; plegada deja ver y usar lo que hay debajo. */
+    var asa = c.querySelector('.tut-asa');
+    if (asa) {
+      asa.setAttribute('role', 'button');
+      asa.setAttribute('tabindex', '0');
+      asa.setAttribute('title', 'Plegar o desplegar esta tarjeta');
+      function alternar() { c.classList.toggle('plegado'); }
+      asa.addEventListener('click', function (ev) {
+        if (document.documentElement.classList.contains('es-telefono')) {
+          ev.stopPropagation();
+          alternar();
+        }
+      });
+      asa.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); alternar(); }
+      });
+    }
+
     c.querySelector('#tutSalir').addEventListener('click', terminar);
     c.querySelector('#tutAntes').addEventListener('click', function () {
       if (est.i > 0) { est.i--; pintar(); }
@@ -1266,6 +1287,10 @@ SIM.tutorial = (function () {
 
     function inicio(ev) {
       if (ev.target && ev.target.closest && ev.target.closest('button')) return;
+      /* En telefono la tarjeta no se arrastra: no hay sitio adonde
+         moverla y un toque mal interpretado la manda fuera de la
+         pantalla. Ahi el asa sirve para plegarla, no para moverla. */
+      if (document.documentElement.classList.contains('es-telefono')) { return; }
       var r = c.getBoundingClientRect();
       arrastrando = true;
       est.movido = true;
