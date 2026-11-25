@@ -1282,5 +1282,57 @@ body.con-tut .col-izq{padding-bottom:210px;}
 .es-telefono .vista-caja.chica{height:42vh;min-height:250px;}
 .vista-caja{overflow:hidden;}
 
-/* el boton que fija el modo */
-.btn-modo{white-space:nowrap;}
+/* Control de vista: va en el encabezado de la portada, no en el pie.
+   En el telefono el pie queda por debajo del borde inferior y habia que
+   bajar hasta el final para encontrarlo, que es como no tenerlo. */
+.inicio2-cab{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  margin-bottom:8px;flex-wrap:wrap;
+}
+.inicio2-cab .inicio2-sobre{margin:0;}
+.btn-vista{
+  all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;gap:7px;
+  padding:6px 11px;border-radius:var(--r);background:var(--fondo-3);
+  color:var(--texto-2);font-size:var(--t-eti);white-space:nowrap;min-height:34px;
+  transition:background .15s,color .15s;
+}
+.btn-vista svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6;
+  stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto;}
+.btn-vista:hover{background:#31353a;color:var(--texto);}
+.btn-vista:focus-visible{box-shadow:inset 0 0 0 2px var(--acento-sua);}
+html[data-modo-forzado="si"] .btn-vista{color:var(--texto);background:var(--borde-2);font-weight:600;}
+.es-telefono .btn-vista{min-height:40px;padding:8px 12px;}
+
+/* ---------------------------------------------------------------------
+   Arreglos de telefono que solo aparecen al usarlo de verdad
+   ------------------------------------------------------------------ */
+
+/* La guia se posaba sobre la barra de secciones y bloqueaba el cambio
+   de seccion, justo lo que hace falta para seguir el entrenamiento. Se
+   coloca por encima de la barra, y el asa la pliega. */
+.es-telefono .tut{
+  left:8px;right:8px;width:auto;cursor:default;
+  bottom:calc(46px + env(safe-area-inset-bottom,0px) + 8px);
+  max-height:50vh;overflow-y:auto;
+}
+.es-telefono .tut-asa{
+  padding:8px 6px;margin:-6px 0 -6px -4px;cursor:pointer;
+}
+.es-telefono .tut-asa span{width:16px;height:2px;}
+.tut.plegado .tut-txt,
+.tut.plegado .tut-pista,
+.tut.plegado .tut-puntos{display:none;}
+.tut.plegado{padding-bottom:10px;}
+.tut.plegado .tut-cab{margin-bottom:0;}
+.tut.plegado .tut-pie{margin-top:8px;justify-content:flex-end;}
+
+/* El circuito de gases es una capa fija: su panel crecia por debajo del
+   borde inferior y lo que no cabia era inalcanzable, asi que el banco de
+   pruebas no se podia usar. En telefono pasa a columna con scroll. */
+.es-telefono .pane-cuerpo{
+  display:block;overflow-y:auto;padding:10px 10px 16px;
+}
+.es-telefono .gas-lienzo{height:40vh;min-height:240px;margin-bottom:10px;}
+.es-telefono .gas-panel{overflow:visible;max-height:none;}
+.es-telefono .pane-barra{flex-wrap:wrap;gap:8px;padding:8px 10px;}
+.es-telefono .banco .ctrl input[type=range]{height:32px;}
