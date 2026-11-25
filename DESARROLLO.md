@@ -2,7 +2,45 @@
 
 Que se construyo en cada ensayo, que fallo y por que se corrigio. Lo mas reciente va primero.
 
-## Ensayo 4 - la estetica
+## Ensayo 5 - pantallas pequenas
+
+**No se pregunta que aparato es, se mide el ancho.** Preguntar "eres un telefono" es fragil: una
+tableta responde cosas raras, un telefono en modo escritorio miente, cada ano salen aparatos que no
+estan en la lista, y encima deja fuera el caso de un portatil con la ventana a media pantalla, que
+tiene el mismo problema y no es un telefono. `js/pantalla.js` mide el ancho disponible y reparte en
+tres tramos: telefono por debajo de 700 px, tableta hasta 1080, computador por encima.
+
+**Las reglas cuelgan de clases, no de `@media`.** `pantalla.js` pone `es-telefono`, `es-tableta` o
+`es-pc` en `<html>` y el CSS se apoya en eso. El motivo es el boton: un `@media` no se deja
+contradecir por un boton, y se pedia poder fijar el modo a mano. El boton esta en la portada y gira
+entre automatico, computador fijado y telefono fijado; la eleccion se recuerda.
+
+**El escenario, en telefono, va por secciones.** Maquina, estado, curvas y que haces, con una barra
+abajo para saltar. La alternativa era un scroll de tres metros, y ahi no se pierde informacion sino
+algo peor: la relacion entre el sintoma y la accion, que es lo que el simulador ensena. Las alarmas
+quedan fuera del reparto y se ven siempre, porque son lo que no te puedes perder.
+
+**La cabecera ocupaba cuatro filas y ahora tres.** El grupo de la derecha deja de ser una caja
+(`display:contents`) para que sus piezas se repartan entre las filas: salir, reloj y audio arriba;
+titulo y variante debajo.
+
+**Tamanos de toque.** Acciones de 54 px de alto, botones de 42, perilla de los mandos de 26. Un dedo
+no acierta un control de 24 px.
+
+**La portada en telefono pone la maquina primero.** Antes el dibujo quedaba al final, debajo de
+todo, y al abrir el simulador en el telefono habia que adivinar que estaba ahi.
+
+### Dos fallos encontrados de paso
+
+**El reloj marcaba `0-1:0-1`.** El sello que entrega `requestAnimationFrame` es el del comienzo del
+fotograma, que puede ser anterior al `performance.now()` con el que se arranco el bucle. El primer
+`dt` salia negativo, el tiempo acumulado tambien, y el relleno de ceros convertia el -1 en `0-1`.
+Corregido en el origen (el `dt` no puede ser negativo) y tambien en el formateador. Llevaba dias a
+la vista en el computador.
+
+**La maquina se salia de su caja en una sola columna.** Al pasar a columna unica, la caja del dibujo
+se queda sin altura definida y el SVG, que pide el 100% de ella, se desbordaba por encima de lo que
+venia despues. Se le fija la altura en los modos de una columna.
 
 > Copia del Ensayo 3 con la estetica rehecha. El Ensayo 3 sigue intacto en `ENSAYOS\ENSAYO_3` y es
 > el que esta publicado. Si esta version no convence, se descarta la carpeta entera: la logica, los

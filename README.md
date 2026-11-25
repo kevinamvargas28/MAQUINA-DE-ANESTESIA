@@ -66,6 +66,13 @@ de cada cara calculado a partir de su orientación frente a una sola fuente de l
 pantallas se desplazan, como en un equipo encendido, y se detienen si el sistema pide movimiento
 reducido.
 
+El simulador se adapta al tamaño de la pantalla. No pregunta qué aparato es —eso es frágil y deja
+fuera el caso de una ventana estrecha en un computador— sino que mide el ancho disponible y reparte
+en tres tramos: teléfono, tableta y computador. En teléfono el escenario se recorre por secciones
+(máquina, estado, curvas y acciones) con una barra inferior, y las alarmas se ven siempre, en
+cualquier sección. Un botón en la portada permite fijar a mano el modo de teléfono o el de
+computador cuando el automático no acierte; la elección se recuerda.
+
 En **Conocer la máquina** se puede elegir entre dos dibujos: el esquema de frente, que enseña mejor
 la arquitectura porque nada se tapa, y el equipo en volumen, que se parece más a lo que se encuentra
 en el quirófano. Los dos responden igual: se señala una parte, se realza y se entra al módulo.
@@ -104,6 +111,7 @@ js/alarmas.js       condiciones de alarma y prioridades
 js/escenarios.js    las seis fallas, sus variantes y sus acciones
 js/maquinaVista.js  vista de frente de la máquina, la que enseña
 js/maquinaPortada.js dibujo en perspectiva: portada y modo equipo
+js/pantalla.js      tramos por ancho de pantalla y modo manual
 js/esquema.js       circuito interno de gases
 js/monitor.js       curvas de presión y capnografía
 js/tutorial.js      guiones del entrenamiento guiado

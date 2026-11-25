@@ -22,9 +22,9 @@
    AL PUBLICAR UNA VERSION NUEVA: cambiar la fecha de VERSION. Es lo
    unico que hay que tocar en este archivo. Ver PUBLICAR.md.             */
 (function () {
-  var VERSION = '2026-11-23';
+  var VERSION = '2026-11-25';
 
-  var MODULOS = ['perfil', 'modelo', 'maquina', 'alarmas', 'escenarios', 'modulos',
+  var MODULOS = ['pantalla', 'perfil', 'modelo', 'maquina', 'alarmas', 'escenarios', 'modulos',
                  'maquinaVista', 'maquinaPortada', 'esquema', 'monitor', 'tutorial', 'ui'];
 
   /* Funciones que la interfaz usa de cada modulo. Si falta alguna, lo que
@@ -39,7 +39,8 @@
     maquina:      ['estadoInicial', 'calcular'],
     alarmas:      ['evaluar'],
     tutorial:     ['hay'],
-    modulos:      ['porId']
+    modulos:      ['porId'],
+    pantalla:     ['actual', 'forzar', 'siguiente']
   };
 
   var hoja = document.createElement('link');
