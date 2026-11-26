@@ -1203,8 +1203,123 @@ SIM.tutorial = (function () {
     quitarFoco();
     if (est.caja && est.caja.parentNode) est.caja.parentNode.removeChild(est.caja);
     est.caja = null;
+    if (est.burbuja && est.burbuja.parentNode) est.burbuja.parentNode.removeChild(est.burbuja);
+    est.burbuja = null;
     document.body.classList.remove('con-tut');
     if (est.alSalir) est.alSalir();
+  }
+
+  /* ---- burbuja flotante ---------------------------------------------
+     Se arrastra con pointer events, que cubren raton y dedo con el mismo
+     codigo. Al soltarla se pega al lado mas cercano, como los botones
+     flotantes del telefono, y se mantiene dentro de la pantalla aunque
+     esta cambie de tamano o gire. */
+  function crearBurbuja() {
+    if (est.burbuja) { return est.burbuja; }
+    var b = document.createElement('button');
+    b.className = 'tut-burbuja oculto';
+    b.setAttribute('aria-label', 'Abrir la guia');
+    b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+                  '<path d="M12 17.2v.01M12 13.8c0-2.2 2.4-2.4 2.4-4.4a2.4 2.4 0 1 0-4.8 0"/>' +
+                  '<circle cx="12" cy="12" r="9.2"/></svg>' +
+                  '<span class="tut-burbuja-n" id="tutBurbujaN"></span>';
+    document.body.appendChild(b);
+    est.burbuja = b;
+
+    var x = null, y = null, movido = false, px = 0, py = 0, idp = null;
+
+    /* clientWidth es mas fiable que innerWidth: innerWidth incluye la
+       barra de desplazamiento y en algunos navegadores da un valor que
+       no corresponde al area visible. */
+    function anchoUtil() {
+      return Math.min(window.innerWidth || 9999,
+                      document.documentElement.clientWidth || 9999);
+    }
+    function altoUtil() {
+      return Math.min(window.innerHeight || 9999,
+                      document.documentElement.clientHeight || 9999);
+    }
+
+    function colocar(nx, ny) {
+      var m = 8, an = b.offsetWidth || 54, al = b.offsetHeight || 54;
+      var maxX = anchoUtil() - an - m, maxY = altoUtil() - al - m;
+      x = Math.max(m, Math.min(maxX, nx));
+      y = Math.max(m, Math.min(maxY, ny));
+      b.style.left = x + 'px';
+      b.style.top = y + 'px';
+      b.style.right = 'auto';
+      b.style.bottom = 'auto';
+    }
+
+    function pegarAlBorde() {
+      var m = 8, an = b.offsetWidth || 54;
+      var centro = x + an / 2;
+      colocar(centro < anchoUtil() / 2 ? m : anchoUtil() - an - m, y);
+    }
+
+    b.addEventListener('pointerdown', function (ev) {
+      idp = ev.pointerId;
+      movido = false;
+      var r = b.getBoundingClientRect();
+      px = ev.clientX - r.left;
+      py = ev.clientY - r.top;
+      /* con un puntero sintetico esto lanza; no es motivo para perder
+         el arrastre */
+      try { b.setPointerCapture(idp); } catch (e) { }
+      b.classList.add('moviendo');
+    });
+    b.addEventListener('pointermove', function (ev) {
+      if (idp === null) { return; }
+      var r = b.getBoundingClientRect();
+      if (Math.abs(ev.clientX - r.left - px) > 4 || Math.abs(ev.clientY - r.top - py) > 4) {
+        movido = true;
+      }
+      colocar(ev.clientX - px, ev.clientY - py);
+      ev.preventDefault();
+    });
+    function soltar() {
+      if (idp === null) { return; }
+      idp = null;
+      b.classList.remove('moviendo');
+      if (movido) { pegarAlBorde(); }
+      else { recuperar(); }        /* un toque sin arrastre la abre */
+    }
+    b.addEventListener('pointerup', soltar);
+    b.addEventListener('pointercancel', soltar);
+
+    window.addEventListener('resize', function () {
+      if (x !== null) { colocar(x, y); pegarAlBorde(); }
+    });
+
+    /* La posicion siempre pasa por el recorte: fijarla a mano fue como
+       se me escapo fuera de la pantalla la primera vez. */
+    b.colocar = colocar;
+    b.pegar = pegarAlBorde;
+    return b;
+  }
+
+  function guardar() {
+    if (!est.caja) { return; }
+    var b = crearBurbuja();
+    est.caja.classList.add('oculto');
+    b.classList.remove('oculto');
+    if (!b.style.left) {
+      /* primera vez: al lado derecho, por encima de la barra inferior */
+      b.colocar(9999, (document.documentElement.clientHeight || 800) - 190);
+      b.pegar();
+    }
+    actualizarBurbuja();
+  }
+
+  function recuperar() {
+    if (est.burbuja) { est.burbuja.classList.add('oculto'); }
+    if (est.caja) { est.caja.classList.remove('oculto'); }
+  }
+
+  function actualizarBurbuja() {
+    if (!est.burbuja || !est.guion) { return; }
+    var n = est.burbuja.querySelector('#tutBurbujaN');
+    if (n) { n.textContent = (est.i + 1) + '/' + est.guion.length; }
   }
 
   function crearCaja() {
@@ -1234,23 +1349,20 @@ SIM.tutorial = (function () {
 
     hacerArrastrable(c);
 
-    /* El asa pliega la tarjeta. En el telefono la guia tapaba la barra
-       de secciones y no se podia cambiar de seccion para seguir el
-       entrenamiento; plegada deja ver y usar lo que hay debajo. */
+    /* El asa guarda la guia en una burbuja flotante.
+       Plegar la tarjeta en su sitio no bastaba: incluso encogida ocupa
+       el borde inferior, que es justo donde esta la barra de secciones.
+       La burbuja se puede llevar a cualquier parte de la pantalla, asi
+       que el estorbo lo quita el usuario y no hay que adivinar donde
+       molesta menos. */
     var asa = c.querySelector('.tut-asa');
     if (asa) {
       asa.setAttribute('role', 'button');
       asa.setAttribute('tabindex', '0');
-      asa.setAttribute('title', 'Plegar o desplegar esta tarjeta');
-      function alternar() { c.classList.toggle('plegado'); }
-      asa.addEventListener('click', function (ev) {
-        if (document.documentElement.classList.contains('es-telefono')) {
-          ev.stopPropagation();
-          alternar();
-        }
-      });
+      asa.setAttribute('title', 'Guardar la guia en una burbuja');
+      asa.addEventListener('click', function (ev) { ev.stopPropagation(); guardar(); });
       asa.addEventListener('keydown', function (ev) {
-        if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); alternar(); }
+        if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); guardar(); }
       });
     }
 
@@ -1350,6 +1462,13 @@ SIM.tutorial = (function () {
     var c = est.caja;
 
     c.querySelector('#tutPaso').textContent = 'Paso ' + (est.i + 1) + ' de ' + est.guion.length;
+    /* si la guia esta en la burbuja, que se note que avanzo */
+    if (est.burbuja && !est.burbuja.classList.contains('oculto')) {
+      actualizarBurbuja();
+      est.burbuja.classList.remove('destella');
+      void est.burbuja.offsetWidth;
+      est.burbuja.classList.add('destella');
+    }
     c.querySelector('#tutTxt').textContent = p.texto;
 
     var pista = c.querySelector('#tutPista');
