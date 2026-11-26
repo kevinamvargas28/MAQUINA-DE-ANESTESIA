@@ -92,27 +92,44 @@ SIM.tutorial = (function () {
       { texto: 'A la izquierda esta la maquina completa. Es tu mapa: cada parte que ves es un subsistema real. ' +
                'Pasa el cursor por encima y se iluminan. Durante el diagnostico te sirve para saber en que ' +
                'parte de la maquina estas trabajando.',
+        textoTel: 'Esta es la seccion Maquina, la primera de la barra de abajo. Es tu mapa: cada parte que ' +
+               'ves es un subsistema real, y tocandola la consultas. Te sirve para saber en que parte de la ' +
+               'maquina estas trabajando. Yo te voy cambiando de seccion segun lo que toque mirar.',
         resalta: '#colIzq' },
 
       { texto: 'Arriba a la derecha estan las alarmas. El color es lo importante: rojo con parpadeo rapido es ' +
                'prioridad alta, amarillo lento es media y amarillo fijo es baja. La de prioridad mas alta te ' +
                'marca el primer paso.',
+        textoTel: 'Esta banda son las alarmas, y la veras en todas las secciones: es lo que no te puedes ' +
+               'perder. El color es lo importante: rojo con parpadeo rapido es prioridad alta, amarillo lento ' +
+               'es media y amarillo fijo es baja. La de prioridad mas alta marca el primer paso.',
         resalta: '#bandaAlarmas' },
 
       { texto: 'Debajo, las variables. Un solo valor por concepto, nada de catalogos. La barra de la izquierda ' +
                'te dice si esta bien (verde), si hay que vigilarla (amarillo) o si esta fuera de rango (rojo).',
+        textoTel: 'Acabo de traerte a la seccion Estado: aqui estan las variables. Un solo valor por ' +
+               'concepto, nada de catalogos. La barra de color te dice si esta bien (verde), si hay que ' +
+               'vigilarla (amarillo) o si esta fuera de rango (rojo).',
         resalta: '#variables' },
 
       { texto: 'Estas son las curvas. Son pequenas a proposito: la banda sombreada es el rango normal, asi que ' +
                'de un vistazo ves si el nivel cayo o subio, sin tener que leer numeros.',
+        textoTel: 'Seccion Curvas. La banda sombreada es el rango normal, asi que de un vistazo ves si el ' +
+               'nivel cayo o subio sin tener que leer numeros. Puedes volver aqui cuando quieras desde la ' +
+               'barra de abajo.',
         resalta: '#curvasMini' },
 
       { texto: 'Debajo de la maquina tienes los flujometros: O2, aire y N2O. Mueve el de O2 y fijate en que ' +
                'no cambia una sola cosa, sino cuatro a la vez: el gas fresco total, la FiO2 que recibe el ' +
                'paciente, cuanto gas se reinhala y, si el cilindro esta abierto, lo rapido que se consume.',
+        textoTel: 'En la seccion Maquina, bajo el dibujo, estan los flujometros: O2, aire y N2O. Mueve el de ' +
+               'O2 con el dedo y fijate en que no cambia una sola cosa, sino cuatro a la vez: el gas fresco ' +
+               'total, la FiO2 que recibe el paciente, cuanto gas se reinhala y, si el cilindro esta abierto, ' +
+               'lo rapido que se consume.',
         resalta: '#controles',
         espera: 'control:o2',
-        pista: 'Arrastra el control de O2.' },
+        pista: 'Arrastra el control de O2.',
+        pistaTel: 'Desliza la perilla verde de O2 con el dedo.' },
 
       { texto: 'Rangos que te sirven de referencia: un adulto de 70 kg consume unos 0,25 L/min de oxigeno, ' +
                'anestesia de flujo bajo son 1 L/min de gas fresco, y para que no haya nada de reinhalacion ' +
@@ -1316,6 +1333,19 @@ SIM.tutorial = (function () {
     if (est.caja) { est.caja.classList.remove('oculto'); }
   }
 
+  /* Deja a la vista en que seccion esta lo del paso. En el computador
+     sobra, porque se ve todo a la vez. */
+  function pintarSeccion() {
+    if (!est.caja) { return; }
+    var e = est.caja.querySelector('#tutSec');
+    if (!e) { return; }
+    var nom = (est.seccion && SIM.ui && SIM.ui.nombreSeccion)
+      ? SIM.ui.nombreSeccion(est.seccion) : null;
+    var enTel = document.documentElement.classList.contains('es-telefono');
+    if (nom && enTel) { e.textContent = nom; e.classList.remove('oculto'); }
+    else { e.classList.add('oculto'); }
+  }
+
   function actualizarBurbuja() {
     if (!est.burbuja || !est.guion) { return; }
     var n = est.burbuja.querySelector('#tutBurbujaN');
@@ -1331,6 +1361,7 @@ SIM.tutorial = (function () {
         '<span class="tut-asa" title="Arrastra para mover esta tarjeta">' +
           '<span></span><span></span><span></span></span>' +
         '<span class="tut-chapa">Entrenamiento</span>' +
+        '<span class="tut-sec oculto" id="tutSec"></span>' +
         '<span class="tut-paso" id="tutPaso"></span>' +
         '<button class="tut-salir" id="tutSalir">Salir de la guia</button>' +
       '</div>' +
@@ -1395,32 +1426,60 @@ SIM.tutorial = (function () {
   }
 
   function hacerArrastrable(c) {
-    var arrastrando = false, dx = 0, dy = 0;
+    /* Pointer events en vez de eventos de raton: el mismo codigo sirve
+       para el dedo y para el raton. Con mousedown la tarjeta no se podia
+       mover en el telefono, que es justo donde mas falta hace.
 
-    function inicio(ev) {
-      if (ev.target && ev.target.closest && ev.target.closest('button')) return;
-      /* En telefono la tarjeta no se arrastra: no hay sitio adonde
-         moverla y un toque mal interpretado la manda fuera de la
-         pantalla. Ahi el asa sirve para plegarla, no para moverla. */
-      if (document.documentElement.classList.contains('es-telefono')) { return; }
+       Se arrastra por la cabecera, no por toda la tarjeta: en una
+       pantalla tactil, arrastrar desde el texto compite con el gesto de
+       desplazar y con la seleccion. */
+    var dx = 0, dy = 0, idp = null;
+    var asa = c.querySelector('.tut-cab');
+    if (!asa) { return; }
+    asa.classList.add('tut-mover');
+
+    function limite(nx, ny) {
+      var m = 6;
+      var W = Math.min(window.innerWidth || 9999, document.documentElement.clientWidth || 9999);
+      var H = Math.min(window.innerHeight || 9999, document.documentElement.clientHeight || 9999);
+      var w = c.offsetWidth || 320, h = c.offsetHeight || 180;
+      return [Math.max(m, Math.min(W - w - m, nx)),
+              Math.max(m, Math.min(H - h - m, ny))];
+    }
+
+    asa.addEventListener('pointerdown', function (ev) {
+      if (ev.target && ev.target.closest && ev.target.closest('button, .tut-asa')) { return; }
       var r = c.getBoundingClientRect();
-      arrastrando = true;
+      idp = ev.pointerId;
       est.movido = true;
       dx = ev.clientX - r.left;
       dy = ev.clientY - r.top;
       c.classList.add('arrastrando');
-      document.addEventListener('mousemove', mover);
-      document.addEventListener('mouseup', fin);
-      if (ev.preventDefault) ev.preventDefault();
-    }
-    function mover(ev) { if (arrastrando) colocar(ev.clientX - dx, ev.clientY - dy); }
+      try { asa.setPointerCapture(idp); } catch (e) { }
+      if (ev.preventDefault) { ev.preventDefault(); }
+    });
+
+    asa.addEventListener('pointermove', function (ev) {
+      if (idp === null) { return; }
+      var p = limite(ev.clientX - dx, ev.clientY - dy);
+      colocar(p[0], p[1]);
+      ev.preventDefault();
+    });
+
     function fin() {
-      arrastrando = false;
+      if (idp === null) { return; }
+      idp = null;
       c.classList.remove('arrastrando');
-      document.removeEventListener('mousemove', mover);
-      document.removeEventListener('mouseup', fin);
     }
-    c.addEventListener('mousedown', inicio);
+    asa.addEventListener('pointerup', fin);
+    asa.addEventListener('pointercancel', fin);
+
+    /* Si cambia el tamano o gira el telefono, que no se quede fuera. */
+    window.addEventListener('resize', function () {
+      if (!est.movido || !c.style.left) { return; }
+      var p = limite(parseFloat(c.style.left) || 0, parseFloat(c.style.top) || 0);
+      colocar(p[0], p[1]);
+    });
   }
 
   /* Si el elemento resaltado queda debajo de la tarjeta, la tarjeta se
@@ -1469,10 +1528,16 @@ SIM.tutorial = (function () {
       void est.burbuja.offsetWidth;
       est.burbuja.classList.add('destella');
     }
-    c.querySelector('#tutTxt').textContent = p.texto;
+    /* En telefono la pantalla no esta repartida igual, asi que un paso
+       que diga "a la izquierda" o "debajo" manda al usuario a mirar
+       donde no es. Los pasos que dependen de la disposicion llevan una
+       version propia; los demas sirven para las dos. */
+    var enTel = document.documentElement.classList.contains('es-telefono');
+    c.querySelector('#tutTxt').textContent = (enTel && p.textoTel) ? p.textoTel : p.texto;
 
     var pista = c.querySelector('#tutPista');
-    if (p.pista) { pista.textContent = p.pista; pista.classList.remove('oculto'); }
+    var tp = (enTel && p.pistaTel) ? p.pistaTel : p.pista;
+    if (tp) { pista.textContent = tp; pista.classList.remove('oculto'); }
     else pista.classList.add('oculto');
 
     var puntos = '';
@@ -1512,6 +1577,27 @@ SIM.tutorial = (function () {
       el = document.querySelector(sel);
     }
     if (!el) return;
+
+    /* En telefono la pantalla esta repartida en secciones y lo que el
+       paso explica puede estar en otra. Antes de resaltarlo, llevar al
+       usuario ahi: si no, el paso habla de algo que no esta viendo y no
+       hay nada que le diga que tiene que cambiar de seccion. */
+    if (SIM.ui && SIM.ui.irASeccion && SIM.ui.seccionDe) {
+      var sec = SIM.ui.seccionDe(el);
+      var enTel = document.documentElement.classList.contains('es-telefono');
+      var guardada = est.burbuja && !est.burbuja.classList.contains('oculto');
+      /* Con la guia abierta se cambia de seccion sola. Guardada en la
+         burbuja no: seria moverle la pantalla a alguien que no esta
+         mirando la guia. En ese caso se marca la pestana y el usuario
+         decide cuando ir. */
+      if (sec && enTel && !guardada) { SIM.ui.irASeccion(sec); }
+      if (sec && enTel && guardada && SIM.ui.marcarSeccionPendiente) {
+        SIM.ui.marcarSeccionPendiente(sec);
+      }
+      est.seccion = sec;
+      pintarSeccion();
+    }
+
     el.classList.add('tut-foco');
     est.foco = el;
     if (el.scrollIntoView) {

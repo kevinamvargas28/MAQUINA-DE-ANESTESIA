@@ -335,7 +335,17 @@ SIM.ui = (function () {
     raiz.innerHTML =
       '<div class="inicio2">' +
         '<div class="inicio2-izq">' +
-          '<p class="inicio2-sobre">Simulador de maquina de anestesia</p>' +
+          '<div class="inicio2-cab">' +
+            '<p class="inicio2-sobre">Simulador de maquina de anestesia</p>' +
+            /* Arriba y no en el pie: en el telefono el pie queda por
+               debajo del borde y habia que bajar para encontrarlo, que
+               es como no tenerlo. */
+            '<button class="btn-vista" id="btnModo" title="Cambia entre vista automatica, de computador y de telefono">' +
+              '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="4" width="13" height="10" rx="1.5"/>' +
+              '<path d="M6 17.5h6"/><rect x="17" y="8.5" width="4.5" height="9" rx="1.2"/></svg>' +
+              '<span id="btnModoTxt">' + SIM.pantalla.etiqueta() + '</span>' +
+            '</button>' +
+          '</div>' +
           '<h1 class="inicio2-tit">Que te gustaria hacer</h1>' +
 
           '<div class="modos-lista">' +
@@ -357,7 +367,6 @@ SIM.ui = (function () {
           '<div class="inicio2-pie">' +
             '<button class="btn-sec peq" id="btnPerfil">Perfil de la maquina</button>' +
             '<button class="btn-sec peq" id="btnSupuestos">Supuestos sin validar</button>' +
-            '<button class="btn-sec peq btn-modo" id="btnModo">' + SIM.pantalla.etiqueta() + '</button>' +
           '</div>' +
         '</div>' +
 
@@ -372,14 +381,14 @@ SIM.ui = (function () {
        una tableta a medio camino, un telefono en horizontal donde si
        cabe la vista completa, o ensenar la version de telefono desde un
        computador. La eleccion se recuerda. */
-    var bm = $('#btnModo', raiz);
-    bm.addEventListener('click', function () {
+    $('#btnModo', raiz).addEventListener('click', function () {
       SIM.pantalla.siguiente();
-      bm.textContent = SIM.pantalla.etiqueta();
+      var t = document.getElementById('btnModoTxt');
+      if (t) { t.textContent = SIM.pantalla.etiqueta(); }
     });
     SIM.pantalla.alCambiar(function () {
-      var b = document.getElementById('btnModo');
-      if (b) { b.textContent = SIM.pantalla.etiqueta(); }
+      var t = document.getElementById('btnModoTxt');
+      if (t) { t.textContent = SIM.pantalla.etiqueta(); }
     });
     $('#btnPerfil', raiz).addEventListener('click', mostrarPerfil);
     $('#btnSupuestos', raiz).addEventListener('click', mostrarSupuestos);
@@ -613,12 +622,45 @@ SIM.ui = (function () {
     { id: 'acciones', et: 'Que haces' }
   ];
 
+  /* A que seccion pertenece un elemento de la pantalla. La guia lo usa
+     para llevar sola al usuario donde esta lo que explica: cada paso ya
+     declara que resalta, asi que no hace falta anotar la seccion paso a
+     paso, que seria una lista que se desactualiza sola. */
+  function seccionDe(el) {
+    if (!el || !el.closest) { return null; }
+    var c = el.closest('[data-sec]');
+    return c ? c.getAttribute('data-sec') : null;
+  }
+
+  function nombreSeccion(id) {
+    for (var i = 0; i < SECCIONES.length; i++) {
+      if (SECCIONES[i].id === id) { return SECCIONES[i].et; }
+    }
+    return null;
+  }
+
+  /* Marca en la barra la seccion donde esta lo que la guia pide.
+     Hace falta cuando la guia esta guardada en la burbuja: ahi no se
+     cambia de seccion sola, y sin esta senal el usuario no sabe adonde
+     ir. */
+  function marcarSeccionPendiente(id) {
+    $$('#secBar button').forEach(function (b) {
+      b.classList.toggle('pendiente',
+        !!id && b.getAttribute('data-ir') === id && S.secTel !== id);
+    });
+  }
+
   function irASeccion(id) {
+    /* Si ya estamos en ella no se toca nada: la guia la llama en cada
+       paso y, sin esta salida, devolveria el scroll al principio cada
+       vez aunque el usuario no hubiera cambiado de seccion. */
+    if (S.secTel === id) { return; }
     S.secTel = id;
     var sim = document.querySelector('.sim');
     if (sim) { sim.setAttribute('data-sec-activa', id); }
     $$('#secBar button').forEach(function (b) {
       b.classList.toggle('on', b.getAttribute('data-ir') === id);
+      if (b.getAttribute('data-ir') === id) { b.classList.remove('pendiente'); }
     });
     window.scrollTo(0, 0);
     var c = document.querySelector('.lienzo2');
@@ -1183,6 +1225,7 @@ SIM.ui = (function () {
         '</div>' +
       '</header>' +
       '<div class="pane-cuerpo">' +
+        '<p class="pane-gira">Gira el telefono: el circuito se ve al doble de ancho.</p>' +
         '<div class="gas-lienzo" id="gasLienzo">' + SIM.esquema.markup() + '</div>' +
         '<aside class="gas-panel"><div id="gasPanel"></div><div id="gasBanco"></div></aside>' +
       '</div>';
@@ -2050,6 +2093,10 @@ SIM.ui = (function () {
     mostrarResumen: mostrarResumen,
     abrirRecorrido: abrirRecorrido,
     cerrarRecorrido: cerrarRecorrido,
-    refrescarRecorrido: refrescarRecorrido
+    refrescarRecorrido: refrescarRecorrido,
+    irASeccion: irASeccion,
+    marcarSeccionPendiente: marcarSeccionPendiente,
+    seccionDe: seccionDe,
+    nombreSeccion: nombreSeccion
   };
 })();
