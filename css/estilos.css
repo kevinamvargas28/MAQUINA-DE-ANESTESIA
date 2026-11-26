@@ -1355,3 +1355,27 @@ html[data-modo-forzado="si"] .btn-vista{color:var(--texto);background:var(--bord
 .es-telefono .gas-panel{overflow:visible;max-height:none;}
 .es-telefono .pane-barra{flex-wrap:wrap;gap:8px;padding:8px 10px;}
 .es-telefono .banco .ctrl input[type=range]{height:32px;}
+
+/* La cabecera de la guia es su asa de arrastre: en una pantalla tactil,
+   arrastrar desde el texto compite con desplazar y con seleccionar. */
+.tut-mover{cursor:grab;touch-action:none;}
+.tut.arrastrando .tut-mover{cursor:grabbing;}
+.tut-sec{
+  font-size:9px;letter-spacing:.09em;text-transform:uppercase;font-weight:600;
+  color:var(--fondo);background:var(--texto-2);border-radius:var(--r);padding:2px 6px;
+}
+
+/* Punto en la pestana donde esta lo que la guia pide, cuando la guia
+   esta guardada en la burbuja y no cambia de seccion sola. */
+.es-telefono .secbar button.pendiente{color:var(--texto);}
+.es-telefono .secbar button.pendiente::after{
+  content:'';position:absolute;top:7px;right:calc(50% - 26px);
+  width:6px;height:6px;border-radius:50%;background:var(--acento);
+}
+.es-telefono .secbar button{position:relative;}
+
+/* En el circuito de gases, girar el telefono da el doble de ancho. */
+.es-telefono .pane-gira{
+  display:block;margin:0 0 8px;font-size:var(--t-eti);color:var(--texto-3);
+}
+.pane-gira{display:none;}
