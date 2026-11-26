@@ -1315,16 +1315,35 @@ html[data-modo-forzado="si"] .btn-vista{color:var(--texto);background:var(--bord
   bottom:calc(46px + env(safe-area-inset-bottom,0px) + 8px);
   max-height:50vh;overflow-y:auto;
 }
-.es-telefono .tut-asa{
-  padding:8px 6px;margin:-6px 0 -6px -4px;cursor:pointer;
-}
+.tut-asa{cursor:pointer;}
+.es-telefono .tut-asa{padding:8px 6px;margin:-6px 0 -6px -4px;}
 .es-telefono .tut-asa span{width:16px;height:2px;}
-.tut.plegado .tut-txt,
-.tut.plegado .tut-pista,
-.tut.plegado .tut-puntos{display:none;}
-.tut.plegado{padding-bottom:10px;}
-.tut.plegado .tut-cab{margin-bottom:0;}
-.tut.plegado .tut-pie{margin-top:8px;justify-content:flex-end;}
+
+/* Burbuja flotante de la guia.
+   Encoger la tarjeta en su sitio no servia: incluso encogida ocupa el
+   borde inferior, que es donde esta la barra de secciones. La burbuja se
+   lleva a donde el usuario quiera, se pega al lado al soltarla y un
+   toque sin arrastre la vuelve a abrir. */
+.tut-burbuja{
+  all:unset;box-sizing:border-box;position:fixed;z-index:61;
+  width:54px;height:54px;border-radius:50%;cursor:grab;touch-action:none;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  background:linear-gradient(180deg,#2b2f33,#1f2225);
+  box-shadow:0 6px 20px rgba(0,0,0,.55),inset 0 0 0 1px var(--borde-2);
+  color:var(--texto-2);
+}
+.tut-burbuja svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.7;
+  stroke-linecap:round;stroke-linejoin:round;}
+.tut-burbuja-n{font-size:9px;letter-spacing:.04em;font-variant-numeric:tabular-nums;}
+.tut-burbuja:hover{color:var(--texto);}
+.tut-burbuja.moviendo{cursor:grabbing;transform:scale(1.06);box-shadow:0 10px 26px rgba(0,0,0,.62);}
+.tut-burbuja:focus-visible{box-shadow:0 0 0 3px var(--acento-sua),0 6px 20px rgba(0,0,0,.55);}
+@keyframes tutDestella{
+  0%{box-shadow:0 6px 20px rgba(0,0,0,.55),inset 0 0 0 1px var(--acento);}
+  100%{box-shadow:0 6px 20px rgba(0,0,0,.55),inset 0 0 0 1px var(--borde-2);}
+}
+.tut-burbuja.destella{animation:tutDestella 1.1s ease-out 2;color:var(--texto);}
+@media (prefers-reduced-motion:reduce){.tut-burbuja.destella{animation:none;}}
 
 /* El circuito de gases es una capa fija: su panel crecia por debajo del
    borde inferior y lo que no cabia era inalcanzable, asi que el banco de
